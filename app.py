@@ -51,11 +51,11 @@ def main():
 
 
     # Header Section
-    h_col1, h_col2 = st.columns([3, 1], gap="medium")
-    with h_col1:
-        st.markdown('<h1 style="text-align:left !important; margin-bottom:4px; margin-top:0; padding:0; font-weight:900; font-size:52px; letter-spacing:-1.8px;">Linguistix</h1>', unsafe_allow_html=True)
-        st.markdown("<p style='text-align:left !important; opacity:0.65; font-size:13px; margin:0; padding:0; margin-top:-2px; color:var(--text-secondary) !important;'>Minimal. Intelligent. Global.</p>", unsafe_allow_html=True)
+    h_col1, h_col2, h_col3 = st.columns([1, 4, 1], gap="medium")
     with h_col2:
+        st.markdown('<div class="hero-text"><h1 style="text-align:center !important; font-family: \'Poppins\', sans-serif !important; text-transform:uppercase; margin-bottom:4px; margin-top:0; padding:0; font-weight:900; font-size:56px; letter-spacing:-1.5px;">LINGUISTIX</h1></div>', unsafe_allow_html=True)
+        st.markdown("<div class='hero-text'><p style='text-align:center !important; font-family: \'Inter\', sans-serif !important; opacity:0.85; font-size:16px; margin:0; padding:0; margin-top:4px; color:var(--text-secondary) !important;'>Translate Beyond Words</p></div>", unsafe_allow_html=True)
+    with h_col3:
         st.markdown("<div class='auth-btn' style='text-align:right; padding-top:4px;'>", unsafe_allow_html=True)
         if st.session_state.authenticated:
             col_profile, col_logout = st.columns([2, 1])

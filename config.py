@@ -81,8 +81,8 @@ THEMES = {
     },
     "cloud_fusion": {
         "name": "☁️ Cloud Fusion Pro",
-        "bg": "linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%)", "panel": "#FFFFFF", "accent": "#3B82F6", "accent_secondary": "#60A5FA", "glow": "rgba(59, 130, 246, 0.15)",
-        "text": "#0F172A", "text_muted": "#475569", "text_inverse": "#FFFFFF", "border": "#E2E8F0"
+        "bg": "linear-gradient(135deg, #F4FAFF 0%, #EAF7FF 40%, #FFFFFF 100%)", "panel": "rgba(255, 255, 255, 0.65)", "accent": "#3B82F6", "accent_secondary": "#60A5FA", "glow": "rgba(59, 130, 246, 0.15)",
+        "text": "#1E293B", "text_muted": "#64748B", "text_inverse": "#FFFFFF", "border": "#D9ECF7"
     }
 }
 

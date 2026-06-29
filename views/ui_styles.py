@@ -1,25 +1,195 @@
 import streamlit as st
+import base64
+import os
+
+@st.cache_data
+def _get_bg_b64():
+    """Load the background image as a base64 string (cached)."""
+    img_path = os.path.join("images", "bg.png")
+    if os.path.exists(img_path):
+        with open(img_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return None
 
 @st.cache_data
 def get_main_css(theme):
+    bg_b64 = _get_bg_b64()
+    _bg_url = f"url('data:image/png;base64,{bg_b64}')" if bg_b64 else "none"
+    
+    # Extract primary accent color
+    primary_accent = theme['accent']
+    accent_light = theme.get('accent_secondary', primary_accent)
+    
     return f"""
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&family=Outfit:wght@400;600;800&family=Inter:wght@400;600;700&display=swap');
     @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 
+    /* ═══════════════════════════════════════════════════════════════
+       COHESIVE COLOR SYSTEM - Primary Color with Depth Layering
+       ═══════════════════════════════════════════════════════════════ */
+    
     :root {{
-        --text-primary: {theme['text']};
-        --text-secondary: {theme['text_muted']};
+        /* PRIMARY COLOR & ACCENTS */
+        --primary: {primary_accent};
+        --primary-light: {accent_light};
+        --primary-dark: rgba(0, 0, 0, 0.1);
+        
+        /* COLOR TINTS FOR DEPTH & STATES */
+        --primary-hover: rgba({int(primary_accent[1:3], 16)}, {int(primary_accent[3:5], 16)}, {int(primary_accent[5:7], 16)}, 0.9);
+        --primary-active: rgba({int(primary_accent[1:3], 16)}, {int(primary_accent[3:5], 16)}, {int(primary_accent[5:7], 16)}, 0.85);
+        --primary-disabled: rgba({int(primary_accent[1:3], 16)}, {int(primary_accent[3:5], 16)}, {int(primary_accent[5:7], 16)}, 0.5);
+        
+        /* BACKGROUND TINTS - Lighter/Darker for visual hierarchy */
+        --bg-lightest: rgba({int(primary_accent[1:3], 16)}, {int(primary_accent[3:5], 16)}, {int(primary_accent[5:7], 16)}, 0.05);
+        --bg-light: rgba({int(primary_accent[1:3], 16)}, {int(primary_accent[3:5], 16)}, {int(primary_accent[5:7], 16)}, 0.1);
+        --bg-lighter: rgba({int(primary_accent[1:3], 16)}, {int(primary_accent[3:5], 16)}, {int(primary_accent[5:7], 16)}, 0.15);
+        
+        /* SHADOW SYSTEM - Elevation Depth */
+        --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+        --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.15);
+        --shadow-2xl: 0 20px 50px rgba(125, 211, 252, 0.15);
+        --shadow-accent-sm: 0 2px 8px rgba({int(primary_accent[1:3], 16)}, {int(primary_accent[3:5], 16)}, {int(primary_accent[5:7], 16)}, 0.2);
+        --shadow-accent-md: 0 6px 20px rgba({int(primary_accent[1:3], 16)}, {int(primary_accent[3:5], 16)}, {int(primary_accent[5:7], 16)}, 0.3);
+        
+        /* TEXT COLORS */
+        --text-primary: {theme.get('text', '#1E293B')};
+        --text-secondary: {theme.get('text_muted', '#64748B')};
+        --text-tertiary: #94A3B8;
         --text-inverse: {theme.get('text_inverse', '#ffffff')};
+        
+        /* ACCENT & BORDERS */
         --accent: {theme['accent']};
         --accent-secondary: {theme['accent_secondary']};
-        --panel: {theme['panel']};
-        --bg: {theme['bg']};
-        --border: {theme['border']};
-        --glow: {theme.get('glow', 'rgba(0,0,0,0.1)')};
+        --panel: {theme.get('panel', 'rgba(255, 255, 255, 0.65)')};
+        --bg: transparent;
+        --border: {theme.get('border', '#D9ECF7')};
+        --glow: {theme.get('glow', 'rgba(59,130,246,0.15)')};
+        
+        /* TYPOGRAPHY */
         --font-heading: 'Outfit', sans-serif;
         --font-body: 'Inter', sans-serif;
+        
+        /* SPACING & SIZING */
+        --spacing-xs: 4px;
+        --spacing-sm: 8px;
+        --spacing-md: 12px;
+        --spacing-lg: 16px;
+        --spacing-xl: 24px;
+        --spacing-2xl: 32px;
+        
+        /* TRANSITIONS */
+        --transition-fast: 0.15s cubic-bezier(0.2, 0, 0.38, 0.9);
+        --transition-base: 0.25s cubic-bezier(0.2, 0, 0.38, 0.9);
+        --transition-slow: 0.4s cubic-bezier(0.2, 0, 0.38, 0.9);
+        
+        /* BORDER RADIUS */
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+        --radius-2xl: 24px;
+    }}
+    
+    /* ═══════════════════════════════════════════════════════════════
+       LOADING STATES & SKELETON SCREENS - Smooth Transitions
+       ═══════════════════════════════════════════════════════════════ */
+    
+    /* Loading spinner - Smooth rotation */
+    @keyframes spinLoader {{
+        100% {{ transform: rotate(360deg); }}
+    }}
+    
+    /* Skeleton screen - Shimmer effect */
+    @keyframes shimmerLoader {{
+        0% {{ background-position: -1000px 0; }}
+        100% {{ background-position: 1000px 0; }}
+    }}
+    
+    .loading-spinner {{
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid var(--bg-light);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spinLoader 0.8s linear infinite;
+    }}
+    
+    .skeleton {{
+        background: linear-gradient(
+            90deg,
+            var(--bg-lightest) 0%,
+            var(--bg-light) 50%,
+            var(--bg-lightest) 100%
+        );
+        background-size: 1000px 100%;
+        animation: shimmerLoader 2s infinite;
+        border-radius: var(--radius-md);
+    }}
+    
+    .skeleton-text {{
+        height: 16px;
+        margin-bottom: 12px;
+        border-radius: var(--radius-sm);
+    }}
+    
+    .skeleton-text.large {{
+        height: 24px;
+    }}
+    
+    /* Button loading state */
+    .stButton button:disabled {{
+        opacity: 0.6 !important;
+        cursor: not-allowed !important;
+        box-shadow: var(--shadow-sm) !important;
+    }}
+    
+    /* Smooth transition for modals, drawers, tooltips */
+    @keyframes slideInUp {{
+        from {{
+            opacity: 0;
+            transform: translateY(20px);
+        }}
+        to {{
+            opacity: 1;
+            transform: translateY(0);
+        }}
+    }}
+    
+    @keyframes slideInDown {{
+        from {{
+            opacity: 0;
+            transform: translateY(-20px);
+        }}
+        to {{
+            opacity: 1;
+            transform: translateY(0);
+        }}
+    }}
+    
+    @keyframes fadeInScale {{
+        from {{
+            opacity: 0;
+            transform: scale(0.95);
+        }}
+        to {{
+            opacity: 1;
+            transform: scale(1);
+        }}
+    }}
+    
+    /* Modal-like elements */
+    [data-testid="stModalBody"] {{
+        animation: fadeInScale var(--transition-base) ease-out !important;
+    }}
+    
+    /* Drawer-like elements */
+    [data-testid="stSidebar"] {{
+        animation: slideInDown 0.3s ease-out !important;
     }}
 
     /* GLOBAL RESET - Clean and minimal */
@@ -31,21 +201,30 @@ def get_main_css(theme):
     [data-testid="stHeader"] > div {{visibility: visible !important;}}
     
     /* ═══════════════════════════════════════════════════
-       BACKGROUND - Clean, single gradient  
+       BACKGROUND - Clean, soft gradient  
     ═══════════════════════════════════════════════════ */
     .stApp {{
-        background: {theme['bg']} !important;
+        background-image: linear-gradient(
+            135deg,
+            #F4FAFF 0%,
+            #EAF7FF 40%,
+            #FFFFFF 100%
+        ), {_bg_url} !important;
+        background-size: cover !important;
+        background-position: center center !important;
         background-attachment: fixed !important;
+        background-repeat: no-repeat !important;
         color: var(--text-primary) !important;
         font-family: var(--font-body) !important;
         padding: 0 !important;
         margin: 0 !important;
     }}
 
-    /* Force global text color with high specificity and readability */
+    /* Force global text color — using theme text colors */
     .stApp, .stApp p, .stApp span, .stApp label, .stApp .stMarkdown div, .stApp .stCaption,
     [data-testid="stWidgetLabel"] p, [data-testid="stHeader"] *, .stMarkdown p,
-    .stSelectbox div, .stTextInput div, .stTextArea div {{
+    .stSelectbox div, .stTextInput div, .stTextArea div,
+    h2, h3, h4, h5, h6, li, td, th, strong, em, b {{
         color: var(--text-primary) !important;
     }}
     
@@ -54,11 +233,11 @@ def get_main_css(theme):
         color: var(--text-primary) !important;
     }}
     
-    /* Ensure inputs have a theme-appropriate background */
+    /* Ensure inputs have a solid white background */
     .stTextInput input, .stTextArea textarea, .stSelectbox [data-baseweb="select"] {{
-        background: var(--panel) !important;
+        background: #FFFFFF !important;
         color: var(--text-primary) !important;
-        border: 1.5px solid var(--border) !important;
+        border: 1.5px solid {theme.get('border', '#D9ECF7')} !important;
     }}
 
     .stTextInput input:focus, .stTextArea textarea:focus {{
@@ -66,16 +245,18 @@ def get_main_css(theme):
         box-shadow: 0 0 0 3px var(--glow) !important;
     }}
     
-    /* Ensure muted/secondary text is still using the correct variable */
+    /* Muted/secondary text — using theme text_muted */
     .secondary-text, [data-testid="stCaption"], .stCaption {{
         color: var(--text-secondary) !important;
-        opacity: 0.8 !important;
+        opacity: 0.85 !important;
     }}
 
-    /* Sidebar - Soft Light Shade */
+    /* Sidebar — white glassmorphism panel */
     [data-testid="stSidebar"] {{
-        background-color: #F8FAFC !important;
-        border-right: 1px solid var(--border) !important;
+        background: rgba(255, 255, 255, 0.5) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border-right: 1px solid {theme.get('border', '#D9ECF7')} !important;
     }}
     [data-testid="stSidebar"] *, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {{
         color: var(--text-primary) !important;
@@ -84,16 +265,16 @@ def get_main_css(theme):
     [data-testid="stSidebar"] [data-testid="stExpander"] > div:first-child,
     [data-testid="stSidebar"] [data-testid="stExpander"] > div:nth-child(2),
     [data-testid="stExpander"] {{
-        background: #EFF6FF !important;
-        border: 1.5px solid rgba(59, 130, 246, 0.15) !important;
+        background: rgba(255, 255, 255, 0.7) !important;
+        border: 1.5px solid {theme.get('border', '#D9ECF7')} !important;
         border-radius: 14px !important;
-        color: #1E293B !important;
+        color: var(--text-primary) !important;
     }}
 
     /* Global Expander Header Fix */
     [data-testid="stExpander"] summary {{
-        background: #EFF6FF !important;
-        color: #1E293B !important;
+        background: rgba(255, 255, 255, 0.7) !important;
+        color: var(--text-primary) !important;
         font-weight: 700 !important;
     }}
 
@@ -112,13 +293,13 @@ def get_main_css(theme):
 
     /* GLOBAL — Selectbox floating dropdown (FORCE LIGHT) */
     [data-baseweb="popover"], [role="listbox"], [data-baseweb="menu"] {{
-        background: var(--panel) !important;
-        border: 1px solid var(--border) !important;
+        background: rgba(255, 255, 255, 0.65) !important;
+        border: 1px solid #D9ECF7 !important;
         box-shadow: 0 10px 40px rgba(0,0,0,0.12) !important;
         border-radius: 12px !important;
     }}
     [role="option"], [data-baseweb="menu"] li {{
-        background: var(--panel) !important;
+        background: #FFFFFF !important;
         color: var(--text-primary) !important;
         padding: 10px 16px !important;
         font-family: 'Poppins', sans-serif !important;
@@ -126,15 +307,16 @@ def get_main_css(theme):
         transition: all 0.2s ease !important;
     }}
     [role="option"]:hover, [data-baseweb="menu"] li:hover {{
-        background: var(--accent)15 !important;
+        background: rgba(91,181,224,0.15) !important;
         color: var(--accent) !important;
     }}
     
     .result-card {{
-        background: #FFFFFF !important;
-        border: 1.5px solid rgba(59, 130, 246, 0.15) !important;
-        box-shadow: 0 8px 32px rgba(59, 130, 246, 0.06) !important;
-        color: #1E293B !important;
+        background: rgba(255, 255, 255, 0.65) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid #D9ECF7 !important;
+        box-shadow: 0 20px 50px rgba(125,211,252,.15) !important;
+        color: var(--text-primary) !important;
         padding: 24px;
         border-radius: 20px;
     }}
@@ -236,22 +418,105 @@ def get_main_css(theme):
         position: relative !important;
     }}
 
-    /* MOBILE RESPONSIVE */
+    /* ═══════════════════════════════════════════════════════════════
+       MOBILE RESPONSIVE - Tap Targets & Prioritized Actions
+       ═══════════════════════════════════════════════════════════════ */
+    
+    /* Ensure all interactive elements have minimum 48x48px tap target */
     @media (max-width: 768px) {{
         .stMainBlockContainer {{
             padding: 1rem 0.75rem !important;
         }}
-        h1 {{ font-size: 32px !important; }}
+        
+        h1 {{ 
+            font-size: 32px !important; 
+        }}
+        
+        /* Stack horizontal blocks vertically on mobile */
         [data-testid="stHorizontalBlock"] {{
             flex-direction: column !important;
-            gap: 0.5rem !important;
+            gap: 12px !important;
+        }}
+        
+        /* Ensure buttons are tap-friendly on mobile */
+        .stButton button {{
+            min-height: 48px !important;
+            padding: 14px 20px !important;
+            font-size: 0.95rem !important;
+        }}
+        
+        /* Input fields - tap-friendly */
+        .stTextInput input, .stTextArea textarea, .stSelectbox [data-baseweb="select"] {{
+            min-height: 48px !important;
+            padding: 14px 16px !important;
+            font-size: 16px !important;
+        }}
+        
+        /* CTA button - larger on mobile */
+        .cta-btn-wrap .stButton button {{
+            min-height: 56px !important;
+            font-size: 1.1rem !important;
+            padding: 16px 24px !important;
+        }}
+        
+        /* Cards - reduced padding on mobile */
+        .result-card, .sidebar-card, .game-v2-card {{
+            padding: 16px !important;
+            margin: 12px 0 !important;
+        }}
+        
+        /* Hide non-essential content on mobile */
+        .mobile-hide {{
+            display: none !important;
+        }}
+        
+        /* Badges - larger on mobile */
+        .badge {{
+            padding: 8px 16px !important;
+            font-size: 12px !important;
+        }}
+        
+        /* Content grouping - single column on mobile */
+        .grouped-row {{
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }}
+        
+        /* Sidebar - less padding on mobile */
+        [data-testid="stSidebar"] {{
+            padding: 8px !important;
+        }}
+    }}
+    
+    /* Extra small devices */
+    @media (max-width: 480px) {{
+        h1 {{ font-size: 24px !important; }}
+        h2 {{ font-size: 20px !important; }}
+        h3 {{ font-size: 16px !important; }}
+        
+        .stButton button {{
+            padding: 12px 16px !important;
+            font-size: 0.9rem !important;
+        }}
+        
+        .cta-btn-wrap .stButton button {{
+            min-height: 52px !important;
+        }}
+        
+        .stMainBlockContainer {{
+            padding: 0.75rem 0.5rem !important;
+        }}
+        
+        /* Single column layout */
+        [data-testid="stHorizontalBlock"] {{
+            gap: 8px !important;
         }}
     }}
 
     /* TYPOGRAPHY - Clean and consistent */
     @keyframes fadeInUp {{ from {{ opacity: 0; transform: translateY(30px); }} to {{ opacity: 1; transform: translateY(0); }} }}
     @keyframes spin {{ 100% {{ transform:rotate(360deg); }} }}
-    @keyframes pulseGlow {{ 0%, 100% {{ box-shadow: 0 0 10px var(--accent)40, 0 0 20px var(--accent)20; transform: scale(1); }} 50% {{ box-shadow: 0 0 25px var(--accent)60, 0 0 45px var(--accent)30; transform: scale(1.05); }} }}
+    @keyframes pulseGlow {{ 0%, 100% {{ box-shadow: 0 0 10px var(--accent)40, 0 0 20px var(--accent)20; transform: scale(1); }} 50% {{ box-shadow: 0 0 25px var(--accent)60, 0 0 45px var(--accent)30; transform: scale(1.03); }} }}
     @keyframes shimmer {{ 0% {{ background-position: -200% 0; }} 100% {{ background-position: 200% 0; }} }}
     @keyframes globalShimmer {{ 0% {{ background-position: -100% center; }} 100% {{ background-position: 100% center; }} }}
     @keyframes float {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-5px); }} }}
@@ -265,21 +530,21 @@ def get_main_css(theme):
         font-size: 64px !important;
         font-weight: 800 !important;
         letter-spacing: -2.5px !important;
-        text-align: left !important;
+        text-align: center !important;
         margin-bottom: 4px !important;
         margin-top: 0 !important;
     }}
     
     h2, h3, h4 {{
-        color: var(--text-primary) !important;
+        color: {theme.get('text', '#1E293B')} !important;
         font-family: var(--font-heading) !important;
         font-weight: 800 !important;
         letter-spacing: -1px !important;
     }}
     
     .tagline {{
-        text-align: left;
-        color: var(--text-secondary);
+        text-align: center;
+        color: #475569;
         font-weight: 600;
         font-size: 15px;
         margin-bottom: 0;
@@ -336,72 +601,80 @@ def get_main_css(theme):
        BUTTON SYSTEM — 3-Tier: Primary | Ghost | Danger
     ═══════════════════════════════════════════════════════ */
 
-    /* Base styles */
+    /* ═══════════════════════════════════════════════════════════════
+       BUTTON SYSTEM - Three-Tier with Depth & Mobile Support
+       ═══════════════════════════════════════════════════════════════ */
+    
+    /* Base button styles - CONSISTENT across all buttons */
     .stButton button {{
         font-family: var(--font-heading) !important;
         font-weight: 800 !important;
         font-size: 0.9rem !important;
         letter-spacing: 0.8px !important;
-        border-radius: 14px !important;
+        border-radius: var(--radius-lg) !important;
         padding: 0.7rem 1.4rem !important;
-        transition: all 0.25s ease !important;
+        transition: all var(--transition-base) !important;
         cursor: pointer !important;
         position: relative !important;
         overflow: hidden !important;
         white-space: nowrap !important;
         border: none !important;
+        min-height: 48px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }}
 
-    /* Primary button */
+    /* PRIMARY BUTTON - Bold & Easy to Find */
     .stButton button[kind="primary"],
     .stButton button:not([kind="secondary"]) {{
-        background: linear-gradient(135deg, {theme['accent']} 0%, {theme['accent_secondary']} 100%) !important;
-        color: #fff !important;
-        box-shadow: 
-            0 4px 15px {theme['accent']}35,
-            0 8px 30px {theme['accent']}25,
-            inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
+        color: var(--text-inverse) !important;
+        box-shadow: var(--shadow-accent-md), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
         font-weight: 700 !important;
         margin: 0 !important;
     }}
     
+    /* PRIMARY HOVER - Elevated with depth */
     .stButton button:not([kind="secondary"]):hover {{
-        transform: scale(1.05) translateY(-4px) !important;
+        transform: scale(1.03) translateY(-4px) !important;
         box-shadow: 
-            0 8px 25px {theme['accent']}45,
-            0 16px 50px {theme['accent']}35,
-            0 0 40px {theme['accent']}40,
+            var(--shadow-accent-md),
+            0 12px 32px rgba(0, 0, 0, 0.15),
+            0 0 20px var(--primary),
             inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
         filter: brightness(1.12) !important;
     }}
     
+    /* PRIMARY ACTIVE - Pressed state with immediate feedback */
     .stButton button:not([kind="secondary"]):active {{
-        transform: scale(0.98) translateY(-2px) !important;
-        box-shadow: 
-            0 2px 8px {theme['accent']}30,
-            inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+        transform: scale(0.98) translateY(-1px) !important;
+        box-shadow: var(--shadow-sm), inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+        filter: brightness(0.95) !important;
     }}
 
-    /* Secondary button */
+    /* SECONDARY BUTTON - Lighter, outline-based */
     .stButton button[kind="secondary"] {{
-        background: linear-gradient(135deg, {theme['accent']}18, {theme['accent']}08) !important;
-        color: {theme['accent']} !important;
-        border: 2px solid {theme['accent']}50 !important;
-        box-shadow: 
-            0 2px 8px {theme['accent']}15,
-            inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+        background: linear-gradient(135deg, var(--primary)12, var(--primary)06) !important;
+        color: var(--primary) !important;
+        border: 2px solid var(--primary) !important;
+        box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
         font-weight: 700 !important;
     }}
     
+    /* SECONDARY HOVER - Depth increase */
     .stButton button[kind="secondary"]:hover {{
-        background: linear-gradient(135deg, {theme['accent']}28, {theme['accent']}18) !important;
-        border-color: {theme['accent']} !important;
-        transform: scale(1.04) translateY(-2px) !important;
-        box-shadow: 
-            0 6px 20px {theme['accent']}35,
-            0 0 30px {theme['accent']}25,
-            inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
-        filter: brightness(1.08) !important;
+        background: linear-gradient(135deg, var(--primary)18, var(--primary)12) !important;
+        border-color: var(--primary) !important;
+        transform: scale(1.03) translateY(-2px) !important;
+        box-shadow: var(--shadow-accent-md), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+        filter: brightness(1.05) !important;
+    }}
+    
+    /* SECONDARY ACTIVE */
+    .stButton button[kind="secondary"]:active {{
+        transform: scale(0.98) translateY(0px) !important;
+        box-shadow: var(--shadow-sm), inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
     }}
 
     /* Error button */
@@ -418,7 +691,7 @@ def get_main_css(theme):
     .error-btn .stButton button:hover, .error-btn button:hover {{
         background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.15)) !important;
         border-color: #ef4444 !important;
-        transform: scale(1.04) translateY(-2px) !important;
+        transform: scale(1.03) translateY(-2px) !important;
         box-shadow: 
             0 4px 15px rgba(239, 68, 68, 0.35),
             0 8px 25px rgba(239, 68, 68, 0.2),
@@ -440,7 +713,7 @@ def get_main_css(theme):
     .warning-btn .stButton button:hover {{
         background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(245, 158, 11, 0.15)) !important;
         border-color: #f59e0b !important;
-        transform: scale(1.04) translateY(-2px) !important;
+        transform: scale(1.03) translateY(-2px) !important;
         box-shadow: 
             0 4px 15px rgba(245, 158, 11, 0.35),
             0 8px 25px rgba(245, 158, 11, 0.2),
@@ -462,7 +735,7 @@ def get_main_css(theme):
     .success-btn .stButton button:hover {{
         background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.15)) !important;
         border-color: #10b981 !important;
-        transform: scale(1.04) translateY(-2px) !important;
+        transform: scale(1.03) translateY(-2px) !important;
         box-shadow: 
             0 4px 15px rgba(16, 185, 129, 0.35),
             0 8px 25px rgba(16, 185, 129, 0.2),
@@ -521,75 +794,99 @@ def get_main_css(theme):
         filter: brightness(1.08) !important;
     }}
 
-    /* General Widget & Input fields - Ensure readability across themes */
-    .stTextInput input, .stSelectbox [data-baseweb="select"], 
-    .stFileUploader section[data-testid="stFileUploadDropzone"], .stMarkdown code {{
-        background: var(--panel) !important;
+    /* ═══════════════════════════════════════════════════════════════
+       INPUT FIELDS & FORM ELEMENTS - Consistent Depth & Mobile Support
+       ═══════════════════════════════════════════════════════════════ */
+    
+    /* TEXT INPUTS - Solid, Elevated, Tap-Friendly */
+    .stTextInput input, .stTextArea textarea {{
+        background: #FFFFFF !important;
         border: 1.5px solid var(--border) !important;
-        border-radius: 12px !important;
+        border-radius: var(--radius-md) !important;
         padding: 12px 16px !important;
         font-size: 0.95rem !important;
         color: var(--text-primary) !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
-        margin: 0 !important;
-    }}
-
-    .stTextArea textarea {{
-        background: rgba(255, 255, 255, 0.85) !important;
-        border: 1.5px solid var(--border) !important;
-        border-radius: 12px !important;
-        padding: 12px 16px !important;
-        font-size: 0.95rem !important;
-        color: #1E293B !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
-        margin: 0 !important;
+        transition: all var(--transition-base) !important;
+        box-shadow: var(--shadow-sm) !important;
+        min-height: 48px !important;
+        display: flex !important;
+        align-items: center !important;
     }}
     
-    /* File Uploader Internal Text & Icons Fix */
-    .stFileUploader small, .stFileUploader [data-testid="stMarkdownContainer"] p, .stFileUploader span,
-    .stFileUploader div[data-testid="stUploaderIcon"] {{
-        color: #1E293B !important;
-        fill: #1E293B !important;
+    /* INPUT FOCUS STATE - Depth increase on interaction */
+    .stTextInput input:focus, .stTextArea textarea:focus {{
+        background: #FFFFFF !important;
+        border-color: var(--primary) !important;
+        box-shadow: 
+            var(--shadow-accent-sm),
+            0 0 0 3px var(--bg-light) !important;
+        outline: none !important;
     }}
     
-    /* Ensure widget labels are always visible */
-    [data-testid="stWidgetLabel"] p {{
-        color: #1E293B !important;
-        font-weight: 700 !important;
-        font-size: 0.9rem !important;
+    /* INPUT HOVER STATE - Subtle depth indicator */
+    .stTextInput input:hover, .stTextArea textarea:hover {{
+        border-color: var(--primary-light) !important;
+        box-shadow: var(--shadow-md) !important;
     }}
     
-    ::placeholder {{
-        color: #475569 !important;
-        opacity: 0.6 !important;
-    }}
-
-    .stTextInput input:focus {{
-        background: #ffffff !important;
-        border-color: var(--accent) !important;
-        box-shadow: 0 0 0 3px {theme['accent']}20 !important;
-    }}
-
-    .stTextArea textarea:focus {{
-        background: #ffffff !important;
-        border-color: var(--accent) !important;
-        box-shadow: 0 0 0 3px {theme['accent']}20 !important;
-    }}
-
-    /* DROPDOWNS */
+    /* SELECTBOX - Consistent with input fields */
     .stSelectbox [data-baseweb="select"] {{
-        background: #ffffff !important;
-        border-radius: 12px !important;
+        background: #FFFFFF !important;
         border: 1.5px solid var(--border) !important;
+        border-radius: var(--radius-md) !important;
+        padding: 0 14px !important;
+        min-height: 48px !important;
+        box-shadow: var(--shadow-sm) !important;
+        transition: all var(--transition-base) !important;
         color: var(--text-primary) !important;
-        transition: all 0.3s ease !important;
+        display: flex !important;
+        align-items: center !important;
     }}
     
     .stSelectbox [data-baseweb="select"]:hover {{
-        background: #f8fafc !important;
-        border-color: var(--accent) !important;
+        border-color: var(--primary-light) !important;
+        box-shadow: var(--shadow-md) !important;
+    }}
+    
+    .stSelectbox [data-baseweb="select"]:focus {{
+        border-color: var(--primary) !important;
+        box-shadow: var(--shadow-accent-sm), 0 0 0 3px var(--bg-light) !important;
+    }}
+    
+    /* DROPDOWN MENU - Light, Grouped Content */
+    [data-baseweb="popover"], [role="listbox"], [data-baseweb="menu"] {{
+        background: #FFFFFF !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: var(--shadow-xl) !important;
+        border-radius: var(--radius-lg) !important;
+    }}
+    
+    [role="option"], [data-baseweb="menu"] li {{
+        background: #FFFFFF !important;
+        color: var(--text-primary) !important;
+        padding: 10px 16px !important;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 0.95rem !important;
+        transition: all var(--transition-fast) !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+    }}
+    
+    /* OPTION HOVER - Highlight with accent */
+    [role="option"]:hover, [data-baseweb="menu"] li:hover {{
+        background: var(--bg-light) !important;
+        color: var(--primary) !important;
+        padding-left: 20px !important;
+    }}
+    
+    /* OPTION SELECTED - Bold and colored */
+    [role="option"][aria-selected="true"] {{
+        background: var(--bg-lighter) !important;
+        color: var(--primary) !important;
+        font-weight: 700 !important;
+        border-left: 3px solid var(--primary) !important;
+        padding-left: 16px !important;
     }}
 
     /* EXPANDERS - Transparent containers */
@@ -599,9 +896,9 @@ def get_main_css(theme):
     }}
     
     [data-testid="stExpander"] > div:first-child {{
-        background: var(--panel) !important;
-        backdrop-filter: blur(var(--blur)) !important;
-        border: 1.5px solid var(--border) !important;
+        background: rgba(255, 255, 255, 0.65) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1.5px solid #D9ECF7 !important;
         border-radius: 12px !important;
         padding: 12px 16px !important;
         transition: all 0.3s ease !important;
@@ -609,8 +906,8 @@ def get_main_css(theme):
     }}
     
     [data-testid="stExpander"] > div:first-child:hover {{
-        background: linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 100%) !important;
-        border-color: #E5E7EB !important;
+        background: rgba(255, 255, 255, 0.80) !important;
+        border-color: #B0D9F0 !important;
     }}
     
     [data-testid="stExpander"] > div:last-child {{
@@ -627,46 +924,82 @@ def get_main_css(theme):
         border-color: var(--accent) !important;
     }}
 
-    /* ═══════════════════════════════════════════════════
-       CARDS & RESULTS
-    ═══════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════════
+       CARDS & CONTENT GROUPING - Visual Hierarchy & Scannability
+       ═══════════════════════════════════════════════════════════════ */
     
+    /* Glass card base styles - consistent depth system */
     .result-card {{
         background: var(--panel) !important;
-        border-radius: 20px !important;
+        border-radius: var(--radius-xl) !important;
         padding: 24px !important;
         border: 1px solid var(--border) !important;
         margin: 16px 0 !important;
-        box-shadow: var(--card-shadow) !important;
-        backdrop-filter: blur(var(--blur)) !important;
-        -webkit-backdrop-filter: blur(var(--blur)) !important;
-        transition: all 0.3s ease !important;
+        box-shadow: var(--shadow-lg) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        transition: all var(--transition-base) !important;
         color: var(--text-primary) !important;
     }}
     
+    /* Card hover state - lift with increased depth */
     .result-card:hover {{
-        border-color: var(--accent) !important;
+        border-color: var(--primary) !important;
         box-shadow: 
-            0 12px 40px rgba(0, 0, 0, 0.12),
-            0 4px 2px rgba(0, 0, 0, 0.04),
+            var(--shadow-xl),
+            0 0 20px var(--primary),
             inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
         transform: translateY(-4px) scale(1.005) !important;
     }}
 
-    /* BADGES */
+    /* Content Group - For organizing similar items together */
+    .content-group {{
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+    }}
+    
+    .content-group-title {{
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-primary) !important;
+        margin-bottom: var(--spacing-md);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+    }}
+    
+    .content-group-title::before {{
+        content: '';
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        border-radius: var(--radius-sm);
+    }}
+
+    /* BADGES - Consistent with color system */
     .badge {{
-        background: linear-gradient(135deg, {theme['accent']}30, {theme['accent']}15) !important;
-        color: var(--accent) !important;
+        background: linear-gradient(135deg, var(--primary)30, var(--primary)15) !important;
+        color: var(--primary) !important;
         padding: 6px 14px !important;
         border-radius: 20px !important;
         font-size: 11px !important;
         font-weight: 700 !important;
-        border: 1.5px solid {theme['accent']}50 !important;
+        border: 1.5px solid var(--primary)50 !important;
         display: inline-block !important;
         box-shadow: 
-            0 4px 12px {theme['accent']}20,
+            var(--shadow-accent-sm),
             inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
         backdrop-filter: blur(4px) !important;
+        transition: all var(--transition-fast) !important;
+    }}
+    
+    .badge:hover {{
+        transform: scale(1.05);
+        box-shadow: var(--shadow-accent-md), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
     }}
 
     /* ═══════════════════════════════════════════════════
@@ -700,9 +1033,9 @@ def get_main_css(theme):
     
     .bubble-left {{
         align-self: flex-start;
-        background: var(--panel) !important;
+        background: linear-gradient(135deg, #B6F4FF 0%, #8DEBFF 100%) !important;
         color: var(--text-primary) !important;
-        border: 1.5px solid var(--border) !important;
+        border: 1.5px solid #A7F3F0 !important;
     }}
     
     .bubble-right {{
@@ -764,14 +1097,14 @@ def get_main_css(theme):
         margin: 0 !important;
     }}
 
-    /* DROPDOWNS & SELECTS - Modern White Cards */
+    /* DROPDOWNS & SELECTS — solid white, text from theme */
     .stSelectbox [data-baseweb="select"], .stSelectbox div[role="button"] {{
-        background: #ffffff !important;
-        border: 1px solid rgba(59, 130, 246, 0.15) !important;
+        background: #FFFFFF !important;
+        border: 1px solid #D9ECF7 !important;
         border-radius: 14px !important;
         padding: 8px 12px !important;
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.05) !important;
-        color: #1E293B !important;
+        box-shadow: 0 4px 15px rgba(91, 181, 224, 0.08) !important;
+        color: var(--text-primary) !important;
         font-weight: 600 !important;
     }}
 
@@ -780,11 +1113,11 @@ def get_main_css(theme):
     ═══════════════════════════════════════════════════ */
     .recent-doc-card {{
         position: relative;
-        background: var(--panel) !important;
+        background: rgba(255, 255, 255, 0.65) !important;
         border-radius: 12px;
         padding: 12px;
         margin-bottom: 12px;
-        border: 1.5px solid var(--border) !important;
+        border: 1.5px solid #D9ECF7 !important;
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         display: flex;
         align-items: center;
@@ -812,8 +1145,8 @@ def get_main_css(theme):
         flex-shrink: 0;
     }}
     
-    .doc-icon-pdf {{ background: #FEF2F2; color: #EF4444; }}
-    .doc-icon-img {{ background: #F0FDF4; color: #10B981; }}
+    .doc-icon-pdf {{ background: #FEE2E2; color: #DC2626; }}
+    .doc-icon-img {{ background: #DBEAFE; color: #0284C7; }}
     
     .recent-doc-card .info {{
         display: flex;
@@ -838,62 +1171,143 @@ def get_main_css(theme):
         margin-top: 2px;
     }}
     
-    .lang-pill {{ background: var(--accent)15; color: var(--accent); padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }}
+    .lang-pill {{ background: rgba(255, 255, 255, 0.7); color: #2563EB; padding: 2px 6px; border: 1px solid #D9ECF7; border-radius: 4px; font-weight: 800; text-transform: uppercase; }}
     
-    /* Translation Panels & Buttons */
+    /* ═══════════════════════════════════════════════════════════════
+       PRIMARY ACTION AREAS - CTA Buttons (Bold & Easy to Find)
+       ═══════════════════════════════════════════════════════════════ */
+    
+    /* Translation Panels - Container for CTAs */
     .translate-panel {{
-        background: var(--panel) !important;
+        background: rgba(255, 255, 255, 0.65) !important;
         border: 1.5px solid var(--border) !important;
-        border-radius: 20px;
+        border-radius: var(--radius-xl);
         padding: 28px 24px 20px 24px;
         margin-bottom: 20px;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.03);
+        box-shadow: var(--shadow-xl);
+        transition: all var(--transition-base) !important;
     }}
+    
+    .translate-panel:hover {{
+        border-color: var(--primary) !important;
+        box-shadow: var(--shadow-2xl) !important;
+    }}
+    
+    /* CTA BUTTON - Bold, High Contrast, Mobile Tap-Friendly */
     .cta-btn-wrap .stButton button {{
-        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%) !important;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
         color: white !important;
         font-size: 1.05rem !important;
         font-weight: 800 !important;
-        padding: 0.85rem 1.6rem !important;
-        border-radius: 16px !important;
+        padding: 12px 24px !important;
+        border-radius: var(--radius-lg) !important;
         border: none !important;
-        box-shadow: 0 6px 20px var(--glow) !important;
-        transition: all 0.2s ease !important;
+        box-shadow: var(--shadow-accent-md), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+        transition: all var(--transition-base) !important;
+        min-height: 52px !important;
+        letter-spacing: 0.5px !important;
     }}
+    
+    .cta-btn-wrap .stButton button:hover {{
+        transform: translateY(-3px) !important;
+        box-shadow: 
+            var(--shadow-accent-md),
+            0 12px 32px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+        filter: brightness(1.1) !important;
+    }}
+    
+    .cta-btn-wrap .stButton button:active {{
+        transform: translateY(-1px) !important;
+        box-shadow: var(--shadow-accent-sm), inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }}
+    
     .visual-btn-wrap .stButton button {{
         background: var(--bg) !important;
-        color: var(--accent) !important;
+        color: var(--primary) !important;
         border: 1.5px solid var(--border) !important;
-        border-radius: 14px !important;
+        border-radius: var(--radius-lg) !important;
+        transition: all var(--transition-base) !important;
+        min-height: 48px !important;
+    }}
+    
+    .visual-btn-wrap .stButton button:hover {{
+        border-color: var(--primary) !important;
+        background: var(--bg-light) !important;
+        box-shadow: var(--shadow-accent-sm) !important;
     }}
 
     /* Learning & Activity Styles */
     .game-v2-card {{
-        background: white !important;
-        border: 1px solid #E2E8F0 !important;
-        border-radius: 24px !important;
+        background: rgba(255, 255, 255, 0.65) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: var(--radius-2xl) !important;
         padding: 24px !important;
         position: relative;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.02) !important;
-        transition: all 0.3s ease !important;
+        box-shadow: var(--shadow-lg) !important;
+        transition: all var(--transition-base) !important;
         height: 100%; display: flex; flex-direction: column;
     }}
-    .game-v2-card:hover {{ transform: translateY(-8px) !important; box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important; }}
-    .game-v2-icon-box {{ width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 24px; transition: transform 0.3s ease; }}
-    .game-v2-title {{ font-size: 20px; font-weight: 800; color: #1E293B !important; margin-bottom: 8px; letter-spacing: -0.5px; }}
-    .game-v2-desc {{ font-size: 14px; color: #64748B !important; line-height: 1.5; margin-bottom: 24px; min-height: 42px; }}
-    .flashcard {{ min-width: 200px; max-width: 200px; background: var(--panel); border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; flex-shrink: 0; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); transition: all 180ms ease; }}
-    .flashcard:hover {{ border-color: var(--accent)50; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06); transform: translateY(-3px); }}
+    .game-v2-card:hover {{ 
+        transform: translateY(-8px) !important; 
+        border-color: var(--primary) !important;
+        box-shadow: var(--shadow-xl) !important; 
+    }}
+    .game-v2-icon-box {{ 
+        width: 64px; 
+        height: 64px; 
+        border-radius: var(--radius-lg); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 32px; 
+        margin-bottom: 24px; 
+        transition: transform var(--transition-base); 
+    }}
+    .game-v2-icon-box:hover {{ transform: scale(1.1) rotate(5deg); }}
+    .game-v2-title {{ 
+        font-size: 20px; 
+        font-weight: 800; 
+        color: var(--text-primary) !important; 
+        margin-bottom: 8px; 
+        letter-spacing: -0.5px; 
+    }}
+    .game-v2-desc {{ 
+        font-size: 14px; 
+        color: var(--text-secondary) !important; 
+        line-height: 1.5; 
+        margin-bottom: 24px; 
+        min-height: 42px; 
+    }}
+    .flashcard {{ 
+        min-width: 200px; 
+        max-width: 200px; 
+        background: var(--panel); 
+        border: 1.5px solid var(--border); 
+        border-radius: var(--radius-lg); 
+        padding: 16px; 
+        flex-shrink: 0; 
+        cursor: pointer; 
+        box-shadow: var(--shadow-sm); 
+        transition: all var(--transition-base); 
+    }}
+    .flashcard:hover {{ 
+        border-color: var(--primary); 
+        box-shadow: var(--shadow-lg); 
+        transform: translateY(-4px) scale(1.02); 
+    }}
 
     /* Global Glowy Panel Style */
     .sidebar-card, .result-card {{
-        background: var(--panel) !important;
+        background: rgba(255, 255, 255, 0.65) !important;
         padding: 30px !important;
-        border-radius: 24px !important;
+        border-radius: var(--radius-2xl) !important;
         margin-bottom: 24px !important;
         border: 1px solid var(--border) !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.02) !important;
-        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        box-shadow: var(--shadow-xl) !important;
+        transition: all var(--transition-slow) !important;
         animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
     }}
     .sidebar-card:hover, .result-card:hover {{
@@ -985,7 +1399,7 @@ def get_main_css(theme):
         font-weight: 700 !important;
         letter-spacing: 0.4px !important;
         text-transform: uppercase !important;
-        color: #64748B !important;
+        color: #000000 !important;
         margin: 0 0 4px 0 !important;
     }}
 
@@ -1080,76 +1494,87 @@ def get_main_css(theme):
     h2 {{ margin-top: 24px !important; margin-bottom: 12px !important; }}
     h3 {{ margin-top: 16px !important; margin-bottom: 8px !important; }}
 
-    /* Rich light-blue gradient background */
-    .stApp {{
-        background:
-            radial-gradient(ellipse at 10% 20%, rgba(186, 230, 253, 0.55) 0%, transparent 55%),
-            radial-gradient(ellipse at 90% 80%, rgba(147, 197, 253, 0.45) 0%, transparent 55%),
-            radial-gradient(ellipse at 50% 50%, rgba(224, 242, 254, 0.6) 0%, transparent 70%),
-            linear-gradient(160deg, #f0f9ff 0%, #e0f2fe 50%, #bfdbfe 100%) !important;
-        background-attachment: fixed !important;
-        color: #1E293B !important;
-    }}
+    /* ─── BACKGROUND IMAGE (user-supplied glassmorphism PNG) ─── */
+    /* Background is set above in the main .stApp block — no duplicate needed */
 
-    /* All panels, cards, inputs — transparent glass, NO heavy white */
+    /* Input boxes & textareas — solid white, text from theme */
     .stTextInput input,
     .stSelectbox [data-baseweb="select"],
-    .stTextArea textarea,
-    [data-baseweb="popover"], [role="listbox"], [data-baseweb="menu"],
-    [role="option"], [data-baseweb="menu"] li,
+    .stTextArea textarea {{
+        background: #FFFFFF !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        color: var(--text-primary) !important;
+        border: 1.5px solid #D9ECF7 !important;
+    }}
+
+    /* Dropdown popover — solid white, text from theme */
+    [data-baseweb="popover"], [role="listbox"], [data-baseweb="menu"] {{
+        background: #FFFFFF !important;
+        color: var(--text-primary) !important;
+        border: 1px solid #D9ECF7 !important;
+    }}
+    [role="option"], [data-baseweb="menu"] li {{
+        background: #FFFFFF !important;
+        color: var(--text-primary) !important;
+    }}
+
+    /* Glass cards — semi-transparent white with premium blur */
     [data-testid="stExpander"] > div:first-child,
     .result-card, .sidebar-card, .translate-panel, .game-v2-card, .flashcard {{
-        background: rgba(255, 255, 255, 0.25) !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-        color: #1E293B !important;
-        border: 1px solid rgba(186, 230, 253, 0.5) !important;
+        background: rgba(255, 255, 255, 0.65) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid #D9ECF7 !important;
     }}
 
-    /* Text areas — very light blue shade */
+    /* Text areas — solid white */
     .stTextArea textarea {{
-        background: rgba(219, 234, 254, 0.35) !important;
-        border: 1.5px solid rgba(147, 197, 253, 0.6) !important;
-        color: #1E293B !important;
+        background: #FFFFFF !important;
+        border: 1.5px solid #D9ECF7 !important;
+        color: var(--text-primary) !important;
     }}
     .stTextArea textarea:focus {{
-        background: rgba(219, 234, 254, 0.55) !important;
+        background: #FFFFFF !important;
         border-color: rgba(59, 130, 246, 0.6) !important;
-        box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.2) !important;
+        box-shadow: 0 0 0 3px rgba(91, 181, 224, 0.2) !important;
     }}
 
-    /* File uploader — transparent with blue dashed border */
+    /* File uploader — light semi-transparent */
     .stFileUploader section, [data-testid="stFileUploadDropzone"] {{
-        background: rgba(255, 255, 255, 0.2) !important;
-        border: 2px dashed rgba(59, 130, 246, 0.35) !important;
-        color: #1E293B !important;
+        background: rgba(255, 255, 255, 0.65) !important;
+        border: 2px dashed #D9ECF7 !important;
+        color: var(--text-primary) !important;
     }}
 
-    /* Compact Dictionary Search Box */
+    /* Compact Dictionary Search Box — solid white */
     .dictionary-search-wrap .stTextInput input {{
-        background: rgba(255, 255, 255, 0.3) !important;
-        border: 1px solid rgba(186, 230, 253, 0.6) !important;
+        background: #FFFFFF !important;
+        border: 1.5px solid #D9ECF7 !important;
         border-radius: 12px !important;
         padding: 10px 16px !important;
         font-size: 0.95rem !important;
         font-family: 'Inter', sans-serif !important;
         font-weight: 500 !important;
-        color: #1E3A8A !important;
+        color: var(--text-primary) !important;
         height: 48px !important;
         box-shadow: none !important;
     }}
 
     .context-card {{
-        background: rgba(255, 255, 255, 0.1) !important;
+        background: rgba(255, 255, 255, 0.65) !important;
+        backdrop-filter: blur(20px) !important;
         border-radius: 14px !important;
         padding: 15px !important;
         margin-bottom: 12px !important;
-        border: 1px solid rgba(186, 230, 253, 0.3) !important;
+        border: 1px solid #D9ECF7 !important;
+        color: var(--text-primary) !important;
         transition: all 0.3s ease !important;
     }}
 
     .context-card:hover {{
-        background: rgba(255, 255, 255, 0.2) !important;
+        background: rgba(255, 255, 255, 0.80) !important;
         transform: translateY(-2px);
     }}
 
@@ -1157,11 +1582,11 @@ def get_main_css(theme):
     .unified-search-box {{
         display: flex !important;
         align-items: stretch !important;
-        background: rgba(255, 255, 255, 0.2) !important;
+        background: rgba(255, 255, 255, 0.65) !important;
         border-radius: 16px !important;
-        border: 1.5px solid rgba(186, 230, 253, 0.5) !important;
+        border: 1.5px solid #D9ECF7 !important;
         overflow: hidden !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;
+        box-shadow: 0 20px 50px rgba(125,211,252,.15) !important;
         margin-bottom: 30px !important;
     }}
 
@@ -1203,14 +1628,14 @@ def get_main_css(theme):
 
     .unified-search-box:focus-within {{
         border-color: var(--accent) !important;
-        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15) !important;
-        background: rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 8px 25px rgba(91, 181, 224, 0.20) !important;
+        background: rgba(255, 255, 255, 0.65) !important;
     }}
 
     .dictionary-search-wrap .stTextInput input:focus {{
         border-color: var(--accent) !important;
-        background: rgba(255, 255, 255, 0.4) !important;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+        background: #FFFFFF !important;
+        box-shadow: 0 0 0 3px rgba(91, 181, 224, 0.22) !important;
     }}
 
     .dictionary-search-wrap {{
@@ -1219,21 +1644,212 @@ def get_main_css(theme):
     }}
 
     .dict-meaning-card {{
-        background: rgba(255, 255, 255, 0.2) !important;
+        background: rgba(255, 255, 255, 0.45) !important;
         backdrop-filter: blur(10px) !important;
         border-left: 4px solid var(--accent) !important;
         border-radius: 12px !important;
         padding: 20px !important;
         margin-bottom: 20px !important;
-        border: 1px solid rgba(186, 230, 253, 0.5);
+        border: 1px solid rgba(120, 190, 230, 0.45);
         border-left-width: 4px !important;
+        color: #000000 !important;
         transition: transform 0.3s ease !important;
     }}
 
     .dict-meaning-card:hover {{
         transform: translateX(10px) !important;
-        background: rgba(255, 255, 255, 0.3) !important;
+        background: rgba(255, 255, 255, 0.62) !important;
     }}
+    /* ─── NEW UI EFFECTS & BLOBS ─── */
+    .hero-text {{
+        animation: fadeInUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }}
+    
+    @keyframes floatSlightly {{
+        0%, 100% {{ transform: translateY(0); }}
+        50% {{ transform: translateY(-8px); }}
+    }}
+    
+    .result-card, .sidebar-card, .game-v2-card {{
+        animation: floatSlightly 4s ease-in-out infinite !important;
+    }}
+    
+    /* Background Blobs */
+    @keyframes slowMoveBlob1 {{
+        0%, 100% {{ transform: translate(0, 0) scale(1); }}
+        33% {{ transform: translate(40px, -60px) scale(1.1); }}
+        66% {{ transform: translate(-30px, 30px) scale(0.9); }}
+    }}
+    @keyframes slowMoveBlob2 {{
+        0%, 100% {{ transform: translate(0, 0) scale(1); }}
+        33% {{ transform: translate(-50px, 40px) scale(0.9); }}
+        66% {{ transform: translate(30px, -30px) scale(1.1); }}
+    }}
+    
+    .stApp::before {{
+        content: '';
+        position: fixed;
+        top: 15%;
+        left: 8%;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(40px);
+        z-index: -1;
+        animation: slowMoveBlob1 15s ease-in-out infinite;
+        pointer-events: none;
+    }}
+    
+    .stApp::after {{
+        content: '';
+        position: fixed;
+        bottom: 15%;
+        right: 8%;
+        width: 450px;
+        height: 450px;
+        background: radial-gradient(circle, rgba(160, 225, 235, 0.3) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(50px);
+        z-index: -1;
+        animation: slowMoveBlob2 18s ease-in-out infinite;
+        pointer-events: none;
+    }}
+
+    /* ═══════════════════════════════════════════════════════════════
+       Z-INDEX LAYERING SYSTEM - Visual Hierarchy & Key Areas
+       ═══════════════════════════════════════════════════════════════ */
+    
+    /* Background layers */
+    .stApp {{ z-index: 1; }}
+    .stApp::before {{ z-index: 0; }}
+    .stApp::after {{ z-index: 0; }}
+    
+    /* Main content layers */
+    [data-testid="stSidebar"] {{ z-index: 100; }}
+    [data-testid="stMainBlockContainer"] {{ z-index: 10; }}
+    
+    /* Elevated components */
+    [data-baseweb="popover"], [role="listbox"], [data-baseweb="menu"] {{ z-index: 1000; }}
+    [data-testid="stModalBody"] {{ z-index: 1001; }}
+    
+    /* Floating elements */
+    .cta-btn-wrap {{ z-index: 50; }}
+    .floating-action {{ z-index: 50; }}
+    
+    /* Tooltips and popovers */
+    [data-testid="stTooltip"] {{ z-index: 999; }}
+    
+    /* ═══════════════════════════════════════════════════════════════
+       ACCESSIBILITY & FOCUS STATES - Better Navigation
+       ═══════════════════════════════════════════════════════════════ */
+    
+    /* Visible focus indicators for keyboard navigation */
+    .stButton button:focus {{
+        outline: 2px solid var(--primary) !important;
+        outline-offset: 2px !important;
+    }}
+    
+    .stTextInput input:focus, .stTextArea textarea:focus, .stSelectbox [data-baseweb="select"]:focus {{
+        outline: 2px solid var(--primary) !important;
+        outline-offset: 2px !important;
+    }}
+    
+    /* High contrast focus state for accessibility */
+    *:focus-visible {{
+        outline: 2px solid var(--primary) !important;
+        outline-offset: 2px !important;
+        border-radius: var(--radius-md) !important;
+    }}
+    
+    /* Skip to content link */
+    .skip-to-content {{
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background: var(--primary);
+        color: white;
+        padding: 8px 16px;
+        z-index: 100;
+        border-radius: var(--radius-md);
+    }}
+    
+    .skip-to-content:focus {{
+        top: 0;
+    }}
+    
+    /* ═══════════════════════════════════════════════════════════════
+       ICON SYSTEM - Consistent Style & Weight
+       ═══════════════════════════════════════════════════════════════ */
+    
+    /* Icon container - ensures consistent size and alignment */
+    .icon-container {{
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-md);
+        background: var(--bg-light);
+        transition: all var(--transition-fast);
+    }}
+    
+    .icon-container:hover {{
+        background: var(--bg-lighter);
+        transform: scale(1.1);
+    }}
+    
+    .icon-lg {{
+        width: 48px;
+        height: 48px;
+    }}
+    
+    .icon-sm {{
+        width: 24px;
+        height: 24px;
+    }}
+    
+    /* Icon weight consistency */
+    .icon, [class*="icon"] {{
+        font-weight: 600 !important;
+        line-height: 1 !important;
+    }}
+    
+    /* ═══════════════════════════════════════════════════════════════
+       SMOOTH TRANSITIONS & ANIMATION UTILITIES
+       ═══════════════════════════════════════════════════════════════ */
+    
+    /* Fade in animation for new content */
+    @keyframes fadeIn {{
+        from {{ opacity: 0; }}
+        to {{ opacity: 1; }}
+    }}
+    
+    /* Smooth scale animation */
+    @keyframes scaleIn {{
+        from {{
+            opacity: 0;
+            transform: scale(0.9);
+        }}
+        to {{
+            opacity: 1;
+            transform: scale(1);
+        }}
+    }}
+    
+    /* Utility classes for animations */
+    .animate-fade-in {{
+        animation: fadeIn var(--transition-base) ease-out !important;
+    }}
+    
+    .animate-scale-in {{
+        animation: scaleIn var(--transition-base) ease-out !important;
+    }}
+    
+    .animate-slide-up {{
+        animation: slideInUp var(--transition-base) ease-out !important;
+    }}
+
 </style>
 
 """
