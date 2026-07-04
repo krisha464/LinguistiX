@@ -2,7 +2,7 @@ import streamlit as st
 import time
 import base64
 import os
-from utils.storage import load_users, verify_password, load_data, hash_password, save_users, find_user, get_remembered_user, set_remember_me
+from utils.storage import load_users, verify_password, load_data, hash_password, save_users, find_user, get_remembered_user, set_remember_me, authenticate_user, register_user
 
 def handle_social_login(provider, users):
     """Mock social login handler"""
@@ -173,18 +173,131 @@ def render_auth_page():
         position: relative;
         z-index: 10;
         padding-bottom: 50px;
+        margin-top: 60px;
+    }}
+    .auth-container-wrapper::before,
+    .auth-container-wrapper::after {{
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.5;
+        pointer-events: none;
+        z-index: -1;
+    }}
+    .auth-container-wrapper::before {{
+        width: 420px;
+        height: 420px;
+        top: -80px;
+        left: 8%;
+        background: rgba(59, 130, 246, 0.18);
+    }}
+    .auth-container-wrapper::after {{
+        width: 320px;
+        height: 320px;
+        bottom: -100px;
+        right: 12%;
+        background: rgba(96, 165, 250, 0.16);
     }}
     [data-testid="column"]:nth-child(2) {{
-        background: rgba(255, 255, 255, 0.65) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
-        border: 1px solid #D9ECF7 !important;
-        border-radius: 24px !important;
-        padding: 40px !important;
-        box-shadow: 0 20px 50px rgba(125,211,252,.15) !important;
-        max-width: 440px !important;
+        background: rgba(255, 255, 255, 0.58) !important;
+        backdrop-filter: blur(24px) !important;
+        -webkit-backdrop-filter: blur(24px) !important;
+        border: 1px solid rgba(255,255,255,0.9) !important;
+        border-radius: 32px !important;
+        padding: 44px !important;
+        box-shadow: 0 35px 80px rgba(15, 23, 42, 0.12) !important;
+        max-width: 480px !important;
         margin: 0 auto !important;
         animation: fadeInUp 0.8s ease-out;
+        position: relative !important;
+        overflow: hidden !important;
+    }}
+    [data-testid="column"]:nth-child(2)::before {{
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(59,130,246,0.12), transparent 60%);
+        pointer-events: none;
+        opacity: 0.9;
+    }}
+    [data-testid="column"]:nth-child(2)::after {{
+        content: '';
+        position: absolute;
+        width: 160px;
+        height: 160px;
+        top: 12px;
+        right: -40px;
+        background: radial-gradient(circle, rgba(96,165,250,0.35), transparent 55%);
+        pointer-events: none;
+    }}
+    .auth-welcome-block {{
+        background: linear-gradient(160deg, rgba(59,130,246,0.16), rgba(96,165,250,0.08));
+        border: 1px solid rgba(255,255,255,0.65);
+        border-radius: 24px;
+        padding: 24px 26px;
+        margin-bottom: 28px;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+    }}
+    .auth-welcome-block::before {{
+        content: '';
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        top: -40px;
+        right: -50px;
+        background: rgba(255,255,255,0.45);
+        filter: blur(35px);
+        pointer-events: none;
+    }}
+    .auth-welcome-block h2 {{
+        margin: 0 0 10px;
+        font-size: 24px;
+        color: #0F172A;
+        line-height: 1.1;
+    }}
+    .auth-welcome-block p {{
+        margin: 0;
+        color: #475569;
+        line-height: 1.8;
+        font-size: 14px;
+    }}
+
+    .card-title,
+    .card-subtitle {{
+        text-align: center;
+    }}
+
+    .social-btn {{
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }}
+
+    .text-link-btn {{
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }}
+
+    .text-link-btn.right {{
+        justify-content: flex-end;
+    }}
+
+    .text-link-btn.center {{
+        justify-content: center;
+    }}
+
+    .stButton button {{
+        min-height: 48px !important;
+    }}
+
+    .stButton button[kind="primary"] {{
+        width: 100% !important;
     }}
 
     /* Card Headers */
@@ -389,17 +502,16 @@ def render_auth_page():
     _, center_col, _ = st.columns([1, 1.2, 1])
 
     with center_col:
-        # Icon
+        # Glass welcome note and icon
         st.markdown("""
-        <div class="card-icon">
-            <div class="card-icon-inner">🗣️</div>
+        <div class="auth-welcome-block">
+            <h2>Welcome Back!</h2>
+            <p>To keep connected with us please login with your personal information.</p>
         </div>
+
         """, unsafe_allow_html=True)
 
         if st.session_state.auth_tab == "login":
-            st.markdown("<div class='card-title'>Welcome Back</div>", unsafe_allow_html=True)
-            st.markdown("<div class='card-subtitle'>Continue your multilingual journey with LinguistiX</div>", unsafe_allow_html=True)
-
             u_in = st.text_input("Email", placeholder="✉️ Enter your email", key="page_u_in", value=st.session_state.prefill_user, label_visibility="collapsed")
             p_in = st.text_input("Password", type="password", placeholder="🔒 Enter your password", key="page_p_in", label_visibility="collapsed")
             
@@ -407,7 +519,7 @@ def render_auth_page():
             with rm_col:
                 remember = st.checkbox("Remember me", value=bool(st.session_state.prefill_user))
             with fp_col:
-                st.markdown("<div class='text-link-btn' style='text-align: right; padding-top:6px;'>", unsafe_allow_html=True)
+                st.markdown("<div class='text-link-btn right' style='padding-top:6px;'>", unsafe_allow_html=True)
                 if st.button("Forgot Password?", key="forgot_link_btn"):
                     st.session_state.auth_tab = "forgot"
                     st.rerun()
@@ -419,11 +531,10 @@ def render_auth_page():
                 else:
                     with st.spinner("Authenticating..."):
                         time.sleep(0.5)
-                        username, user_data = find_user(u_in, users)
-                        if user_data and verify_password(p_in, user_data["password"]):
-                            # Handle Remember Me
+                        username, user_data, error_message = authenticate_user(u_in, p_in, users)
+                        if username and user_data:
                             set_remember_me(username, remember)
-                            
+
                             st.session_state.authenticated = True
                             st.session_state.username = username
                             u_data = load_data(username)
@@ -435,7 +546,7 @@ def render_auth_page():
                             time.sleep(0.5)
                             st.rerun()
                         else:
-                            st.error("Invalid credentials.")
+                            st.error(error_message or "Invalid credentials.")
 
             st.markdown("<div class='divider'>OR</div>", unsafe_allow_html=True)
             
@@ -450,7 +561,7 @@ def render_auth_page():
             st.markdown("</div>", unsafe_allow_html=True)
 
             st.markdown("<div style='text-align:center; margin-top:20px; color:#64748B; font-size:13px;'>Don't have an account?</div>", unsafe_allow_html=True)
-            st.markdown("<div class='text-link-btn' style='text-align:center;'>", unsafe_allow_html=True)
+            st.markdown("<div class='text-link-btn center'>", unsafe_allow_html=True)
             if st.button("Sign up", key="go_to_signup_link"):
                 st.session_state.auth_tab = "signup"
                 st.rerun()
@@ -468,21 +579,19 @@ def render_auth_page():
             st.checkbox("I agree to the Terms of Service and Privacy Policy")
 
             if st.button("Sign Up →", type="primary", use_container_width=True, key="create_acc_btn"):
-                if nu_in in users:
-                    st.error("Username already taken")
-                elif any(u.get("email") == em_in for u in users.values() if isinstance(u, dict)):
-                    st.error("Email already registered")
-                elif np_in != cp_in:
+                if np_in != cp_in:
                     st.error("Passwords do not match")
                 elif len(nu_in) < 3 or len(np_in) < 6:
                     st.error("Password must be at least 6 characters.")
                 else:
-                    users[nu_in] = {"password": hash_password(np_in), "email": em_in}
-                    save_users(users)
-                    st.success("Account created!")
-                    time.sleep(1)
-                    st.session_state.auth_tab = "login"
-                    st.rerun()
+                    try:
+                        register_user(nu_in, em_in, np_in, users)
+                        st.success("Account created!")
+                        time.sleep(1)
+                        st.session_state.auth_tab = "login"
+                        st.rerun()
+                    except ValueError as exc:
+                        st.error(str(exc))
 
             st.markdown("<div class='divider'>OR</div>", unsafe_allow_html=True)
             
@@ -497,7 +606,7 @@ def render_auth_page():
             st.markdown("</div>", unsafe_allow_html=True)
 
             st.markdown("<div style='text-align:center; margin-top:20px; color:#64748B; font-size:13px;'>Already have an account?</div>", unsafe_allow_html=True)
-            st.markdown("<div class='text-link-btn' style='text-align:center;'>", unsafe_allow_html=True)
+            st.markdown("<div class='text-link-btn center'>", unsafe_allow_html=True)
             if st.button("Sign in", key="go_to_login_link"):
                 st.session_state.auth_tab = "login"
                 st.rerun()

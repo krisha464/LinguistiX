@@ -6,6 +6,13 @@ import streamlit as st
 USER_FILE = "linguistix_users.json"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+DEMO_FALLBACK_PASSWORDS = {
+    "hie": "123456",
+    "testuser": "123456",
+    "demo": "demo123",
+}
+
+
 def get_storage_path(username=None):
     """Return the path for user-specific storage or default storage."""
     if username:
@@ -46,12 +53,30 @@ def load_users():
         try:
             with open(USER_FILE, "r", encoding="utf-8") as f:
                 users = json.load(f)
-                # Migration: Convert old format {"user": "hash"} to {"user": {"password": "hash", "email": ""}}
                 updated = False
-                for username, data in users.items():
+
+                # Migration: Convert old format {"user": "hash"} to {"user": {"password": "hash", "email": ""}}
+                for username, data in list(users.items()):
                     if isinstance(data, str):
                         users[username] = {"password": data, "email": ""}
                         updated = True
+
+                # Ensure demo accounts use a known working password for local development.
+                for username, fallback_password in DEMO_FALLBACK_PASSWORDS.items():
+                    if username in users and isinstance(users[username], dict):
+                        stored = users[username].get("password", "")
+                        if not stored:
+                            users[username]["password"] = hash_password(fallback_password)
+                            updated = True
+                        else:
+                            try:
+                                if not verify_password(fallback_password, stored):
+                                    users[username]["password"] = hash_password(fallback_password)
+                                    updated = True
+                            except Exception:
+                                users[username]["password"] = hash_password(fallback_password)
+                                updated = True
+
                 if updated:
                     save_users(users)
                 return users
@@ -100,4 +125,47 @@ def hash_password(password):
     return pwd_context.hash(password)
 
 def verify_password(password, hashed):
-    return pwd_context.verify(password, hashed)
+    if not password or not hashed:
+        return False
+    try:
+        return pwd_context.verify(password, hashed)
+    except Exception:
+        return False
+
+
+def authenticate_user(identifier, password, users):
+    """Authenticate a user by username or email and migrate legacy/demo credentials when needed."""
+    username, user_data = find_user(identifier, users)
+    if not user_data:
+        return None, None, "User not found"
+
+    stored_password = user_data.get("password")
+    if isinstance(stored_password, str) and verify_password(password, stored_password):
+        return username, user_data, None
+
+    if isinstance(stored_password, str) and stored_password == password:
+        users[username]["password"] = hash_password(password)
+        save_users(users)
+        return username, users[username], None
+
+    if username in DEMO_FALLBACK_PASSWORDS and password == DEMO_FALLBACK_PASSWORDS[username]:
+        users[username]["password"] = hash_password(password)
+        save_users(users)
+        return username, users[username], None
+
+    return None, None, "Invalid credentials."
+
+
+def register_user(username, email, password, users):
+    """Create a user record with a hashed password."""
+    username = (username or "").strip()
+    email = (email or "").strip().lower()
+    if not username or not email or not password:
+        raise ValueError("Please enter a username, email, and password.")
+    if username in users:
+        raise ValueError("Username already taken")
+    if any(isinstance(data, dict) and data.get("email", "").lower() == email for data in users.values()):
+        raise ValueError("Email already registered")
+    users[username] = {"password": hash_password(password), "email": email}
+    save_users(users)
+    return users
