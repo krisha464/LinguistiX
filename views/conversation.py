@@ -1,7 +1,33 @@
 import streamlit as st
 from utils.translator import detect_and_translate, SUPPORTED_LANGS
 from utils.speech import text_to_speech
+from utils.nlp_advanced import analyze_sentiment, detect_intent
 from streamlit_mic_recorder import speech_to_text
+
+def get_sentiment_color(sentiment):
+    """Return color based on sentiment."""
+    if sentiment == "POSITIVE":
+        return "#10B981"  # Green
+    elif sentiment == "NEGATIVE":
+        return "#EF4444"  # Red
+    else:
+        return "#F59E0B"  # Yellow
+
+def get_intent_icon(intent):
+    """Return emoji icon for intent."""
+    intent_icons = {
+        "greeting": "👋",
+        "farewell": "👋",
+        "question": "❓",
+        "gratitude": "🙏",
+        "apology": "😔",
+        "affirmation": "✅",
+        "negation": "❌",
+        "request": "🙏",
+        "statement": "💬",
+        "emotion": "😊"
+    }
+    return intent_icons.get(intent, "💭")
 
 def render_conversation(target_options):
     st.markdown("""
@@ -33,16 +59,31 @@ def render_conversation(target_options):
         side = "left" if msg['role'] == "A" else "right"
         justify = "flex-start" if side == "left" else "flex-end"
         
+        # Analyze sentiment and intent
+        sentiment = analyze_sentiment(msg['text'])
+        intent = detect_intent(msg['text'])
+        sentiment_color = get_sentiment_color(sentiment['sentiment'])
+        intent_icon = get_intent_icon(intent['primary_intent'])
+        
         st.markdown(f"""
         <div style='display:flex; justify-content:{justify}; margin-bottom:24px;'>
             <div class='bubble bubble-{side}' style='max-width:80%;'>
                 <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; opacity:0.7;'>
-                    <span style='font-size:9px; font-weight:900; letter-spacing:1px;'>{SUPPORTED_LANGS[msg['lang']].upper()}</span>
-                    <span style='font-size:9px; font-weight:900;'>PERSON {msg['role']}</span>
+                    <div style='display:flex; gap:8px; align-items:center;'>
+                        <span style='font-size:9px; font-weight:900; letter-spacing:1px;'>{SUPPORTED_LANGS[msg['lang']].upper()}</span>
+                        <span style='font-size:9px; font-weight:900;'>PERSON {msg['role']}</span>
+                    </div>
+                    <div style='display:flex; gap:6px; align-items:center;'>
+                        <span style='background:{sentiment_color}; color:white; padding:2px 8px; border-radius:12px; font-size:9px; font-weight:700;'>{sentiment["sentiment"]}</span>
+                        <span style='font-size:14px;' title='{intent["primary_intent"]}'>{intent_icon}</span>
+                    </div>
                 </div>
                 <p style='margin:0; font-size:15px; font-weight:500; line-height:1.4;'>{msg['text']}</p>
                 <div class='bubble-trans' style='margin-top:12px; padding-top:12px;'>
                     <p style='margin:0; font-size:16px; font-weight:800;'>{msg['translated']}</p>
+                </div>
+                <div style='margin-top:8px; opacity:0.6; font-size:11px;'>
+                    📊 Confidence: {sentiment["score"]:.0%} | Intent: {intent["primary_intent"].title()} ({intent["confidence"]:.0%})
                 </div>
             </div>
         </div>

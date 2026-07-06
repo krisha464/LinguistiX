@@ -2,10 +2,9 @@ import streamlit as st
 import random
 import datetime
 from utils.dictionary import get_word_info
-from utils.translator import detect_and_translate, SUPPORTED_LANGS
 from utils.storage import save_data
 
-def render_dictionary(target_options):
+def render_dictionary(target_options=None):
     st.markdown("<h3 style='margin-bottom:12px; color:var(--text-primary);'><i class='fas fa-book'></i> Visual Dictionary</h3>", unsafe_allow_html=True)
     
     # 1. Compact Search Box
@@ -34,29 +33,17 @@ def render_dictionary(target_options):
     if st.session_state.dict_results:
         word_info = st.session_state.dict_results
         
-        # Header & Image (Reduced padding)
-        img_col, head_col = st.columns([0.8, 2], gap="medium")
-        
-        with img_col:
-            # Using Icons8 for much more reliable and clean visual concepts
-            img_url = f"https://img.icons8.com/isometric/512/{word_info['word'].lower()}.png"
-            st.markdown(f"""
-            <div style="border-radius:16px; overflow:hidden; border:3px solid white; background:#f8fafc; box-shadow:0 8px 24px rgba(0,0,0,0.05);">
-                <img src="{img_url}" style="width:100%; aspect-ratio:1/1; object-fit:contain; padding:15px;" onerror="this.src='https://img.icons8.com/isometric/512/book.png'">
+        # Header (No Image)
+        st.markdown(f"""
+        <div style="margin-bottom:20px;">
+            <h1 style="margin:0; font-size:56px; font-weight:900; color:var(--text-primary); letter-spacing:-2px; line-height:1;">{word_info['word'].capitalize()}</h1>
+            <p style="color:var(--accent); font-size:22px; font-weight:600; margin-top:4px;">/{word_info['phonetic'].strip('/') if word_info['phonetic'] else '---'}/</p>
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <span style="background:var(--accent)10; color:var(--accent); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:800; border:1px solid var(--accent)20;">SYNCED</span>
+                <span style="background:var(--accent-secondary)10; color:var(--accent-secondary); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:800; border:1px solid var(--accent-secondary)20;">THESAURUS</span>
             </div>
-            """, unsafe_allow_html=True)
-            
-        with head_col:
-            st.markdown(f"""
-            <div style="margin-top:5px;">
-                <h1 style="margin:0; font-size:56px; font-weight:900; color:var(--text-primary); letter-spacing:-2px; line-height:1;">{word_info['word'].capitalize()}</h1>
-                <p style="color:var(--accent); font-size:22px; font-weight:600; margin-top:4px;">/{word_info['phonetic'].strip('/') if word_info['phonetic'] else '---'}/</p>
-                <div style="display:flex; gap:8px; margin-top:12px;">
-                    <span style="background:var(--accent)10; color:var(--accent); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:800; border:1px solid var(--accent)20;">SYNCED</span>
-                    <span style="background:var(--accent-secondary)10; color:var(--accent-secondary); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:800; border:1px solid var(--accent-secondary)20;">THESAURUS</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+        </div>
+        """, unsafe_allow_html=True)
 
         st.markdown("<div style='margin-top:20px;'></div>", unsafe_allow_html=True)
 
@@ -91,19 +78,17 @@ def render_dictionary(target_options):
                 st.markdown(f"<div style='display:flex; flex-wrap:wrap;'>{ants_html}</div>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
 
-            # Ultra-compact Translate
+            # Save to Phrasebook
             st.markdown("<div style='background:var(--accent); border-radius:16px; padding:15px; color:white;'>", unsafe_allow_html=True)
-            t_col1, t_col2 = st.columns([3, 1])
-            with t_col1:
-                tr_lang = st.selectbox("Tgt", options=target_options, format_func=lambda x: SUPPORTED_LANGS[x], key="dict_quick_tr", label_visibility="collapsed")
-            with t_col2:
-                if st.button("GO", key="dict_quick_btn", use_container_width=True):
-                    tr_text, _ = detect_and_translate(word_info['word'], tr_lang, "en")
-                    st.session_state.phrasebook.append({
-                        "input": word_info['word'], "output": tr_text, "lang": tr_lang, "date": datetime.datetime.now().isoformat()
-                    })
-                    save_data(st.session_state.history, st.session_state.favorites, st.session_state.phrasebook, username=st.session_state.username)
-                    st.toast(f"Saved!")
+            if st.button("💾 Save to Phrasebook", key="dict_save_btn", use_container_width=True):
+                st.session_state.phrasebook.append({
+                    "input": word_info['word'], 
+                    "output": word_info['meanings'][0]['definitions'][0]['definition'] if word_info['meanings'] and word_info['meanings'][0]['definitions'] else word_info['word'],
+                    "lang": "en",
+                    "date": datetime.datetime.now().isoformat()
+                })
+                save_data(st.session_state.history, st.session_state.favorites, st.session_state.phrasebook, username=st.session_state.username)
+                st.toast("💾 Saved to Phrasebook!")
             st.markdown("</div>", unsafe_allow_html=True)
 
 

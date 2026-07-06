@@ -15,4 +15,9 @@ PyMuPDF>=1.23.0
 passlib>=1.7.4
 streamlit-mic-recorder>=0.0.8
 pandas>=2.0.0
+textblob>=0.17.1
+spacy>=3.7.0
+transformers>=4.30.0
+langdetect>=1.0.9
+language-tool-python>=2.8.1
 

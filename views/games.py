@@ -28,25 +28,98 @@ def render_word_games():
     for key in ['syn_ant_choice', 'quiz_choice']:
         if key in st.session_state:
             del st.session_state[key]
-            
+
+    st.markdown("""
+    <style>
+        .game-shell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 12px 28px var(--glow);
+            margin-bottom: 18px;
+        }
+        .game-panel-accent {
+            background: linear-gradient(135deg, var(--panel), rgba(255,255,255,0.8));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 10px 24px var(--glow);
+        }
+        .game-badge {
+            background: var(--panel);
+            color: var(--accent);
+            border: 1px solid var(--border);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .game-choice {
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            background: var(--panel);
+            color: var(--text-primary);
+        }
+        .game-choice.choice-correct {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--panel), rgba(255,255,255,0.82));
+            color: var(--accent);
+        }
+        .game-choice.choice-incorrect {
+            border-color: var(--accent-secondary);
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,250,252,0.9));
+            color: var(--text-primary);
+        }
+        .game-choice.choice-muted {
+            opacity: 0.82;
+        }
+        .stButton > button {
+            border-radius: 999px !important;
+            border: 1px solid var(--border) !important;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%) !important;
+            color: white !important;
+            box-shadow: 0 8px 18px var(--glow) !important;
+        }
+        .stButton > button:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 10px 22px var(--glow) !important;
+        }
+        .game-feedback {
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 14px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text-primary);
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
     if not game:
-        st.markdown('<p style="font-size:1.1rem; color:#3B82F6; font-weight:700;">Sharpen your language skills with fun games!</p>', unsafe_allow_html=True)
+        st.markdown('<p style="font-size:1.1rem; color:var(--accent); font-weight:700;">Sharpen your language skills with fun games!</p>', unsafe_allow_html=True)
         
         total_played = st.session_state.quiz_total + st.session_state.syn_total + st.session_state.detect_total + st.session_state.context_total + st.session_state.speed_total
         total_correct = st.session_state.quiz_score + st.session_state.syn_score + st.session_state.detect_score + st.session_state.context_score + st.session_state.speed_score
         acc = int((total_correct / total_played) * 100) if total_played > 0 else 0
         
         st.markdown(f"""
-        <div style='background:#FFFFFF; border:1.5px solid rgba(59, 130, 246, 0.15); border-radius:16px; padding:20px; margin-bottom:24px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.05);'>
-            <h5 style='margin-top:0; color:#3B82F6; margin-bottom:16px;'><i class='fas fa-chart-line'></i> Your Progress</h5>
+        <div class='game-shell'>
+            <h5 style='margin-top:0; color:var(--accent); margin-bottom:16px;'><i class='fas fa-chart-line'></i> Your Progress</h5>
             <div style='display:flex; justify-content:space-around; text-align:center;'>
                 <div>
-                    <h2 style='margin:0; color:#1E293B; font-weight:800;'>{total_played}</h2>
-                    <small style='color:#475569; font-weight:600;'>Words Practiced</small>
+                    <h2 style='margin:0; color:var(--text-primary); font-weight:800;'>{total_played}</h2>
+                    <small style='color:var(--text-secondary); font-weight:600;'>Words Practiced</small>
                 </div>
                 <div>
-                    <h2 style='margin:0; color:#10B981; font-weight:800;'>{acc}%</h2>
-                    <small style='color:#475569; font-weight:600;'>Accuracy</small>
+                    <h2 style='margin:0; color:var(--accent-secondary); font-weight:800;'>{acc}%</h2>
+                    <small style='color:var(--text-secondary); font-weight:600;'>Accuracy</small>
                 </div>
             </div>
         </div>
@@ -92,10 +165,10 @@ def render_word_games():
         
         st.markdown(f"""
         <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>
-            <h4 style='margin:0; color:#1E293B;'>What does <span style='color:#3B82F6; font-weight:800;'>{q['word']}</span> mean?</h4>
-            <span style='background:rgba(59, 130, 246, 0.1); color:#3B82F6; padding:4px 12px; border-radius:12px; font-weight:700; font-size:12px;'>Score: {st.session_state.quiz_score}/{st.session_state.quiz_total}</span>
+            <h4 style='margin:0; color:var(--text-primary);'>What does <span style='color:var(--accent); font-weight:800;'>{q['word']}</span> mean?</h4>
+            <span class='game-badge'>Score: {st.session_state.quiz_score}/{st.session_state.quiz_total}</span>
         </div>
-        <p style='color:#64748B; font-size:13px; font-weight:600; margin-bottom:16px;'>Question {st.session_state.game_step} / 10</p>
+        <p style='color:var(--text-secondary); font-size:13px; font-weight:600; margin-bottom:16px;'>Question {st.session_state.game_step} / 10</p>
         """, unsafe_allow_html=True)
         
         if 'quiz_choices' not in st.session_state:
@@ -131,7 +204,7 @@ def render_word_games():
                     icon = "❌"
                 
                 st.markdown(f"""
-                <div class='game-choice {style_class}' style='padding:12px; border-radius:12px; margin-bottom:8px; border:1px solid #e2e8f0; display:flex; align-items:center;'>
+                <div class='game-choice {style_class}'>
                     <span style='margin-right:12px;'>{icon}</span> {c}
                 </div>
                 """, unsafe_allow_html=True)
@@ -184,10 +257,10 @@ def render_word_games():
         
         st.markdown(f"""
         <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>
-            <h4 style='margin:0; color:#1E293B;'>Select the synonym for <span style='color:#F59E0B; font-weight:800;'>{q['word']}</span></h4>
-            <span style='background:rgba(245, 158, 11, 0.1); color:#F59E0B; padding:4px 12px; border-radius:12px; font-weight:700; font-size:12px;'>Score: {st.session_state.syn_score}/{st.session_state.syn_total}</span>
+            <h4 style='margin:0; color:var(--text-primary);'>Select the synonym for <span style='color:var(--accent-secondary); font-weight:800;'>{q['word']}</span></h4>
+            <span class='game-badge'>Score: {st.session_state.syn_score}/{st.session_state.syn_total}</span>
         </div>
-        <p style='color:#4B5563; font-size:13px; font-weight:600; margin-bottom:16px;'>Question {st.session_state.game_step} / 10</p>
+        <p style='color:var(--text-secondary); font-size:13px; font-weight:600; margin-bottom:16px;'>Question {st.session_state.game_step} / 10</p>
         """, unsafe_allow_html=True)
         
         if 'syn_choices' not in st.session_state:
@@ -219,7 +292,7 @@ def render_word_games():
                     icon = "❌"
                 
                 st.markdown(f"""
-                <div class='game-choice {style_class}' style='padding:12px; border-radius:12px; margin-bottom:8px; border:1px solid #e2e8f0; display:flex; align-items:center;'>
+                <div class='game-choice {style_class}'>
                     <span style='margin-right:12px;'>{icon}</span> {c}
                 </div>
                 """, unsafe_allow_html=True)
@@ -282,11 +355,11 @@ def render_word_games():
         q = st.session_state.det_question
         st.markdown(f"""
         <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>
-            <h4 style='margin:0; color:#1E293B;'>Identify this language!</h4>
-            <span style='background:rgba(59, 130, 246, 0.1); color:#3B82F6; padding:4px 12px; border-radius:12px; font-weight:700; font-size:12px;'>Score: {st.session_state.detect_score}/{st.session_state.detect_total}</span>
+            <h4 style='margin:0; color:var(--text-primary);'>Identify this language!</h4>
+            <span class='game-badge'>Score: {st.session_state.detect_score}/{st.session_state.detect_total}</span>
         </div>
-        <div style='background:#f8fafc; border:1px dashed #3B82F6; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px;'>
-            <h2 style='margin:0; color:#1E293B; letter-spacing:-0.5px;'>"{q['phrase']}"</h2>
+        <div class='game-panel-accent' style='text-align:center; margin-bottom:20px;'>
+            <h2 style='margin:0; color:var(--text-primary); letter-spacing:-0.5px;'>"{q['phrase']}"</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -363,11 +436,11 @@ def render_word_games():
         q = st.session_state.cm_question
         st.markdown(f"""
         <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>
-            <h4 style='margin:0; color:#1E293B;'>Fill in the blank!</h4>
-            <span style='background:rgba(59, 130, 246, 0.1); color:#3B82F6; padding:4px 12px; border-radius:12px; font-weight:700; font-size:12px;'>Score: {st.session_state.context_score}/{st.session_state.context_total}</span>
+            <h4 style='margin:0; color:var(--text-primary);'>Fill in the blank!</h4>
+            <span class='game-badge'>Score: {st.session_state.context_score}/{st.session_state.context_total}</span>
         </div>
-        <div style='background:#f8fafc; border:1px dashed #3B82F6; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px;'>
-            <h2 style='margin:0; color:#1E293B; letter-spacing:-0.4px; line-height:1.4;'>"{q['sentence']}"</h2>
+        <div class='game-panel-accent' style='text-align:center; margin-bottom:20px;'>
+            <h2 style='margin:0; color:var(--text-primary); letter-spacing:-0.4px; line-height:1.4;'>"{q['sentence']}"</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -444,12 +517,12 @@ def render_word_games():
         q = st.session_state.speed_question
         st.markdown(f"""
         <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>
-            <h4 style='margin:0; color:#1E293B;'>Translate it!</h4>
-            <span style='background:rgba(59, 130, 246, 0.1); color:#3B82F6; padding:4px 12px; border-radius:12px; font-weight:700; font-size:12px;'>Score: {st.session_state.speed_score}/{st.session_state.speed_total}</span>
+            <h4 style='margin:0; color:var(--text-primary);'>Translate it!</h4>
+            <span class='game-badge'>Score: {st.session_state.speed_score}/{st.session_state.speed_total}</span>
         </div>
-        <div style='background:#f8fafc; border:1px dashed #3B82F6; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px;'>
-            <p style='color:#64748B; font-weight:700; margin-bottom:8px;'>HOW DO YOU SAY "{q['word'].upper()}" IN {q['target'].upper()}?</p>
-            <h1 style='margin:0; color:#3B82F6;'>???</h1>
+        <div class='game-panel-accent' style='text-align:center; margin-bottom:20px;'>
+            <p style='color:var(--text-secondary); font-weight:700; margin-bottom:8px;'>HOW DO YOU SAY "{q['word'].upper()}" IN {q['target'].upper()}?</p>
+            <h1 style='margin:0; color:var(--accent);'>???</h1>
         </div>
         """, unsafe_allow_html=True)
         

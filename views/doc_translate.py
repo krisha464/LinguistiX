@@ -4,6 +4,7 @@ from utils.translator import detect_and_translate, SUPPORTED_LANGS
 from utils.storage import save_data
 from utils.doc_logic import extract_text_from_doc
 from utils.speech import text_to_speech
+from utils.nlp_advanced import extract_entities
 
 def render_doc_translate(target_options, create_pdf):
     if not st.session_state.authenticated:
@@ -38,28 +39,34 @@ def render_doc_translate(target_options, create_pdf):
         if uploaded_doc:
             st.markdown(f"""
             <div style="background:var(--panel); border:1.5px solid var(--border); border-radius:12px;
-                        padding:12px 16px; margin:8px 0 16px 0; display:flex; align-items:center; gap:10px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-                <span style="font-size:1.4rem;">📄</span>
-                <div style="overflow:hidden;">
-                    <div style="font-weight:700; color:var(--text-primary); font-size:0.95rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">{uploaded_doc.name}</div>
-                    <div style="font-size:0.78rem; color:var(--text-secondary); opacity:0.7;">{round(uploaded_doc.size/1024, 1)} KB &bull; {uploaded_doc.type.split('/')[-1].upper()}</div>
+                        padding:16px; margin:12px 0 20px 0; display:flex; align-items:center; gap:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                <span style="font-size:1.8rem;">📄</span>
+                <div style="overflow:hidden; flex:1;">
+                    <div style="font-weight:800; color:var(--text-primary); font-size:1rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; margin-bottom:4px;">{uploaded_doc.name}</div>
+                    <div style="font-size:0.8rem; color:var(--text-secondary); opacity:0.8; display:flex; gap:12px;">
+                        <span>📊 {round(uploaded_doc.size/1024, 1)} KB</span>
+                        <span>📋 {uploaded_doc.type.split('/')[-1].upper()}</span>
+                    </div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            ctrl_row = st.columns([3, 2])
+            # Improved Controls Layout
+            st.markdown("<p style='font-size:11px; font-weight:800; color:#94A3B8; margin-bottom:8px;'>TRANSLATION SETTINGS</p>", unsafe_allow_html=True)
+            
+            ctrl_row = st.columns([2, 1.2], gap="medium")
             with ctrl_row[0]:
+                st.markdown("<p style='font-size:10px; font-weight:700; color:var(--text-primary); margin-bottom:6px;'>Target Language</p>", unsafe_allow_html=True)
                 doc_tgt = st.selectbox(
-                    "Translate to",
+                    "Select target language",
                     options=doc_target_options,
                     format_func=lambda x: SUPPORTED_LANGS[x],
-                    key="doc_tgt_lang"
+                    key="doc_tgt_lang",
+                    label_visibility="collapsed"
                 )
             with ctrl_row[1]:
-                st.markdown('<p style="font-size:0.875rem; font-weight:600; margin-bottom:4px; color:var(--text-primary); visibility:hidden;">_</p>', unsafe_allow_html=True)
-                st.markdown('<div class="cta-btn-wrap">', unsafe_allow_html=True)
-                doc_clicked = st.button("🚀 Translate Document", key="doc_translate_btn", type="primary", width='stretch')
-                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown("<p style='font-size:10px; font-weight:700; color:var(--text-primary); margin-bottom:6px;'>Action</p>", unsafe_allow_html=True)
+                doc_clicked = st.button("🚀 Translate", key="doc_translate_btn", type="primary", use_container_width=True)
 
             if doc_clicked:
                 with st.spinner("📖 Extracting and translating..."):
@@ -99,39 +106,62 @@ def render_doc_translate(target_options, create_pdf):
 
             st.markdown(f"""
             <div class="result-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3 style="margin:0; color:var(--accent) !important;">Document Translation</h3>
-                    <span class="badge">📄 {detected.upper() if detected else 'AUTO'} → {doc_tgt_disp.upper()}</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="margin:0; color:var(--accent) !important; font-size:1.3rem;">📄 Document Translation</h3>
+                    <span class="badge" style="background:var(--accent)15; color:var(--accent); padding:6px 12px; border-radius:8px; font-size:11px; font-weight:800; border:1px solid var(--accent)30;">
+                        {detected.upper() if detected else 'AUTO'} → {doc_tgt_disp.upper()}
+                    </span>
                 </div>
-                <div style="background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:12px 16px; margin-bottom:15px;">
-                    <p style="font-size:11px; font-weight:800; color:var(--text-secondary); opacity:0.6; margin-bottom:4px; text-transform:uppercase;">Extracted Preview</p>
-                    <p style="font-size:13px; color:var(--text-primary); font-style:italic;">{raw_text[:300]}...</p>
+                <div style="background:var(--bg); border:1.5px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:16px;">
+                    <p style="font-size:10px; font-weight:800; color:var(--accent); opacity:0.8; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">📋 Extracted Content Preview</p>
+                    <p style="font-size:13px; color:var(--text-primary); font-style:italic; line-height:1.5; margin:0;">{raw_text[:300]}...</p>
                 </div>
-                <hr style="opacity:0.1; margin: 15px 0;">
-                <p style="font-size:11px; font-weight:800; color:var(--accent); text-transform:uppercase; margin-bottom:8px;">Translated Result</p>
-                <p style="font-size: 1.05rem; line-height: 1.7; white-space: pre-wrap; font-weight:500;">{translation[:5000]}</p>
+                <hr style="opacity:0.1; margin: 16px 0;">
+                <p style="font-size:10px; font-weight:800; color:var(--accent); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.5px;">✨ Translation</p>
+                <div style="background:rgba(255,255,255,0.3); padding:16px; border-radius:8px; border-left:4px solid var(--accent);">
+                    <p style="font-size: 1.05rem; line-height: 1.8; white-space: pre-wrap; color:var(--text-primary); margin:0;">{translation[:5000]}</p>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
-            act_doc = st.columns(4)
+            # Named Entity Recognition for document context
+            with st.expander("🏷️ Named Entities in Document"):
+                ner_result = extract_entities(raw_text)
+                if ner_result["entity_count"] > 0:
+                    st.write(f"**Total Entities: {ner_result['entity_count']}**")
+                    entity_cols = st.columns(len(ner_result["by_label"]) if ner_result["by_label"] else 1)
+                    for idx, (label, entities) in enumerate(ner_result["by_label"].items()):
+                        with entity_cols[idx % len(entity_cols)]:
+                            st.markdown(f"""
+                            <div style="background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:12px;">
+                                <p style="font-size:10px; font-weight:800; color:var(--accent); margin-bottom:8px; text-transform:uppercase;">{label}</p>
+                                <p style="font-size:12px; color:var(--text-primary); margin:0; line-height:1.5;">{', '.join(set(entities)[:5])}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                else:
+                    st.info("No named entities found in the document.")
+
+            # Action buttons with better alignment
+            st.markdown("<p style='font-size:11px; font-weight:800; color:#94A3B8; margin:20px 0 12px 0;'>ACTIONS</p>", unsafe_allow_html=True)
+            act_doc = st.columns(4, gap="medium")
             with act_doc[0]:
-                if st.button("🔊 Listen", key="doc_listen", width='stretch'):
-                    audio_bytes = text_to_speech(translation[:500], doc_tgt)
+                if st.button("🔊 Listen", key="doc_listen", use_container_width=True):
+                    audio_bytes = text_to_speech(translation[:500], doc_tgt_disp)
                     if audio_bytes:
                         st.session_state.audio_to_play = audio_bytes
                         st.rerun()
             with act_doc[1]:
-                if st.button("⭐ Star", key="doc_star", width='stretch'):
+                if st.button("⭐ Favorite", key="doc_star", use_container_width=True):
                     st.session_state.favorites.append({"input": f"Doc: {raw_text[:40]}...", "output": translation[:80]})
                     save_data(st.session_state.history, st.session_state.favorites, st.session_state.phrasebook, username=st.session_state.username)
-                    st.toast("Saved to favorites!")
+                    st.toast("✅ Saved to favorites!")
             with act_doc[2]:
                 pdf_data = create_pdf(translation)
-                st.download_button("📄 PDF", data=pdf_data, file_name="doc_translation.pdf", width='stretch')
+                st.download_button("📄 PDF", data=pdf_data, file_name="doc_translation.pdf", use_container_width=True)
             with act_doc[3]:
-                st.download_button("📝 TXT", data=translation, file_name="doc_translation.txt", mime="text/plain", width='stretch')
+                st.download_button("📝 TXT", data=translation, file_name="doc_translation.txt", mime="text/plain", use_container_width=True)
 
-            if st.button("🗑️ Clear Result", key="doc_clear"):
+            if st.button("🗑️ Clear Result", key="doc_clear", use_container_width=True):
                 st.session_state.doc_result = None
                 st.session_state.doc_raw_text = None
                 st.session_state.doc_detected = None
@@ -139,8 +169,9 @@ def render_doc_translate(target_options, create_pdf):
         else:
             # Document result placeholder
             st.markdown("""
-            <div style='background:var(--panel); border:1.5px dashed var(--border); border-radius:20px; padding:60px 20px; text-align:center; color:var(--text-secondary);'>
-                <h3 style='color:var(--text-primary) !important; margin-bottom:10px;'>Translation Result</h3>
-                <p style='font-size:14px; opacity:0.8;'>Upload and translate a document to see results here.</p>
+            <div style='background:var(--panel); border:1.5px dashed var(--border); border-radius:20px; padding:80px 40px; text-align:center;'>
+                <div style='font-size:3rem; margin-bottom:16px;'>📄</div>
+                <h3 style='color:var(--text-primary) !important; margin:0 0 8px 0; font-size:1.2rem;'>No Translation Yet</h3>
+                <p style='font-size:14px; opacity:0.7; margin:0;'>Upload a document to extract and translate its content instantly</p>
             </div>
             """, unsafe_allow_html=True)

@@ -28,6 +28,7 @@ from views.doc_translate import render_doc_translate
 from views.fun_zone import render_fun_zone
 from views.games import render_word_games
 from views.dashboard import show_dashboard_modal
+from views.nlp_analyzer import render_nlp_analyzer
 
 # Initialize Session State
 initialize_session_state()
@@ -82,7 +83,7 @@ def main():
 
     # Tabs definition
     target_options = [l for l in SUPPORTED_LANGS.keys() if l != "auto"]
-    tab_list = ["Translator", "🤝 Conversation", "Dictionary", "📲 Offline Hub"]
+    tab_list = ["Translator", "🤝 Conversation", "Dictionary", "📲 Offline Hub", "🧠 NLP Analyzer"]
     if st.session_state.authenticated:
         tab_list += ["📸 Image Translate", "📄 Doc Translate", "🧩 Fun Zone"]
     else:
@@ -99,10 +100,12 @@ def main():
     with tabs[3]:
         render_offline_hub()
     with tabs[4]:
-        render_image_translate(target_options, create_pdf)
+        render_nlp_analyzer()
     with tabs[5]:
-        render_doc_translate(target_options, create_pdf)
+        render_image_translate(target_options, create_pdf)
     with tabs[6]:
+        render_doc_translate(target_options, create_pdf)
+    with tabs[7]:
         render_fun_zone(render_word_games)
 
     # Dashboard Modal

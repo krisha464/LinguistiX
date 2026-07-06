@@ -6,6 +6,7 @@ from utils.translator import detect_and_translate, SUPPORTED_LANGS
 from utils.speech import text_to_speech
 from utils.storage import save_data
 from utils.session import swap_languages
+from utils.nlp_advanced import check_grammar, correct_spelling
 
 def render_translator(target_options, create_pdf):
     # Language Selection Row (Simplified, Swap removed)
@@ -76,6 +77,31 @@ def render_translator(target_options, create_pdf):
         )
         
         st.markdown(f"<div style='text-align:right; margin-top:4px;'><span style='font-size:10px; color:#94A3B8;'>{len(input_text)} characters</span></div>", unsafe_allow_html=True)
+
+        # Advanced NLP Features - Grammar & Spelling Check
+        if input_text.strip():
+            with st.expander("🔍 Grammar & Spelling Check"):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if st.button("✅ Check Grammar", key="grammar_check", use_container_width=True):
+                        grammar_result = check_grammar(input_text)
+                        if grammar_result["error_count"] == 0:
+                            st.success("✓ No grammar errors found!")
+                        else:
+                            st.warning(f"⚠️ Found {grammar_result['error_count']} grammar issue(s)")
+                            for error in grammar_result["suggestions"][:3]:  # Show top 3
+                                st.info(f"**{error['original']}** → **{error['suggestion']}**")
+                
+                with col2:
+                    if st.button("✏️ Fix Spelling", key="spelling_check", use_container_width=True):
+                        spelling_result = correct_spelling(input_text)
+                        if spelling_result.get("is_corrected", False):
+                            st.write("**Corrected Text:**")
+                            st.text_area("", value=spelling_result.get("corrected", input_text), height=100, disabled=True)
+                        else:
+                            st.success("✓ No spelling errors found!")
+
 
         if st.button("📋 Copy Input", key="in_copy", use_container_width=True):
             if input_text.strip():

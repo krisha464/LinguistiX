@@ -32,19 +32,19 @@ def render_image_translate(target_options, create_pdf):
             st.image(uploaded_image, caption=f"📸  {uploaded_image.name}", width='stretch')
             st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
 
-            ctrl_row = st.columns([3, 2, 2])
+            # Improved Controls Layout
+            st.markdown("<p style='font-size:11px; font-weight:800; color:#94A3B8; margin-bottom:8px;'>TRANSLATION OPTIONS</p>", unsafe_allow_html=True)
+            
+            ctrl_row = st.columns([2, 1.2, 1.2], gap="medium")
             with ctrl_row[0]:
-                img_tgt = st.selectbox("Translate to", options=target_options, format_func=lambda x: SUPPORTED_LANGS[x], key="img_lang_select")
+                st.markdown("<p style='font-size:10px; font-weight:700; color:var(--text-primary); margin-bottom:6px;'>Target Language</p>", unsafe_allow_html=True)
+                img_tgt = st.selectbox("Select target language", options=target_options, format_func=lambda x: SUPPORTED_LANGS[x], key="img_lang_select", label_visibility="collapsed")
             with ctrl_row[1]:
-                st.markdown('<p style="font-size:0.875rem; font-weight:600; margin-bottom:4px; color:var(--text-primary); visibility:hidden;">_</p>', unsafe_allow_html=True)
-                st.markdown('<div class="cta-btn-wrap">', unsafe_allow_html=True)
-                ocr_clicked = st.button("🚀 Translate Image", key="ocr_main_btn", type="primary", width='stretch')
-                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown("<p style='font-size:10px; font-weight:700; color:var(--text-primary); margin-bottom:6px;'>Extract & Translate</p>", unsafe_allow_html=True)
+                ocr_clicked = st.button("🚀 Translate", key="ocr_main_btn", type="primary", use_container_width=True)
             with ctrl_row[2]:
-                st.markdown('<p style="font-size:0.875rem; font-weight:600; margin-bottom:4px; color:var(--text-primary); visibility:hidden;">_</p>', unsafe_allow_html=True)
-                st.markdown('<div class="visual-btn-wrap">', unsafe_allow_html=True)
-                visual_clicked = st.button("🖼️ Visual Replace", key="visual_tr_btn", help="Redraw image with translated text", width='stretch')
-                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown("<p style='font-size:10px; font-weight:700; color:var(--text-primary); margin-bottom:6px;'>Visual Redraw</p>", unsafe_allow_html=True)
+                visual_clicked = st.button("🖼️ Redraw", key="visual_tr_btn", help="Redraw image with translated text", use_container_width=True)
 
             if ocr_clicked:
                 with st.spinner("🔍 Reading and translating..."):
@@ -83,14 +83,23 @@ def render_image_translate(target_options, create_pdf):
 
         # Visual OCR Display
         if st.session_state.visual_ocr_img:
-            st.markdown("#### 🖼️ Translated Image Result")
-            st.image(st.session_state.visual_ocr_img, caption="Translated Version", width='stretch')
-            buf = io.BytesIO()
-            st.session_state.visual_ocr_img.save(buf, format="PNG")
-            st.download_button("📥 Download Translated Image", data=buf.getvalue(), file_name="translated_image.png", mime="image/png", width='stretch')
-            if st.button("🗑️ Clear Visual", key="clear_visual"):
-                st.session_state.visual_ocr_img = None
-                st.rerun()
+            st.markdown("""
+            <div style="margin-top:20px;">
+                <h3 style="color:var(--accent); margin-bottom:12px;">🎨 Translated Image</h3>
+            </div>
+            """, unsafe_allow_html=True)
+            st.image(st.session_state.visual_ocr_img, caption="Visual Translation Result", width="stretch")
+            
+            st.markdown("<p style='font-size:11px; font-weight:800; color:#94A3B8; margin:16px 0 12px 0;'>DOWNLOAD OPTIONS</p>", unsafe_allow_html=True)
+            col1, col2 = st.columns(2, gap="medium")
+            with col1:
+                buf = io.BytesIO()
+                st.session_state.visual_ocr_img.save(buf, format="PNG")
+                st.download_button("📥 Download PNG", data=buf.getvalue(), file_name="translated_image.png", mime="image/png", use_container_width=True)
+            with col2:
+                if st.button("🗑️ Clear", key="clear_visual", use_container_width=True):
+                    st.session_state.visual_ocr_img = None
+                    st.rerun()
 
         # Persisted OCR Result
         if st.session_state.ocr_result:
@@ -101,53 +110,62 @@ def render_image_translate(target_options, create_pdf):
 
             st.markdown(f"""
             <div class="result-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3 style="margin:0; color:var(--accent) !important;">Image Translation</h3>
-                    <span class="badge">📸 {detected.upper() if detected else 'OCR'} → {img_tgt_display.upper()}</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="margin:0; color:var(--accent) !important; font-size:1.3rem;">📸 Image Translation</h3>
+                    <span class="badge" style="background:var(--accent)15; color:var(--accent); padding:6px 12px; border-radius:8px; font-size:11px; font-weight:800; border:1px solid var(--accent)30;">
+                        {detected.upper() if detected else 'OCR'} → {img_tgt_display.upper()}
+                    </span>
                 </div>
-                <p style="font-size:14px; margin-top:5px; color:var(--text-secondary) !important; font-style:italic;">Extracted: {raw_text[:80]}...</p>
-                <hr style="opacity:0.1; margin: 15px 0;">
-                <p style="font-size: 1.1rem; line-height: 1.6;">{translation}</p>
+                <p style="font-size:12px; margin:10px 0; color:var(--text-secondary); font-style:italic; padding:8px; background:var(--bg); border-radius:6px; border-left:3px solid var(--accent);">
+                    <strong>Extracted:</strong> {raw_text[:100]}...
+                </p>
+                <hr style="opacity:0.1; margin: 16px 0;">
+                <div style="background:rgba(255,255,255,0.3); padding:16px; border-radius:8px; border-left:4px solid var(--accent);">
+                    <p style="font-size: 1.05rem; line-height: 1.7; margin:0; color:var(--text-primary);">{translation}</p>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
-            act_img = st.columns(4)
+            # Action buttons with better alignment
+            st.markdown("<p style='font-size:11px; font-weight:800; color:#94A3B8; margin:20px 0 12px 0;'>ACTIONS</p>", unsafe_allow_html=True)
+            act_img = st.columns(4, gap="medium")
             with act_img[0]:
-                if st.button("🔊 Listen", key="img_pron_btn", width='stretch'):
+                if st.button("🔊 Listen", key="img_pron_btn", use_container_width=True):
                     audio_bytes = text_to_speech(translation, img_tgt_display)
                     if audio_bytes:
                         st.session_state.audio_to_play = audio_bytes
                         st.rerun()
             with act_img[1]:
-                if st.button("⭐ Star", key="img_star", width='stretch'):
+                if st.button("⭐ Favorite", key="img_star", use_container_width=True):
                     st.session_state.favorites.append({"input": f"Image OCR: {raw_text[:30]}...", "output": translation})
                     save_data(st.session_state.history, st.session_state.favorites, st.session_state.phrasebook, username=st.session_state.username)
-                    st.toast("Saved!")
+                    st.toast("✅ Saved to favorites!")
             with act_img[2]:
                 pdf_data = create_pdf(translation)
-                st.download_button("📄 PDF", data=pdf_data, file_name="image_tr.pdf", width='stretch')
+                st.download_button("📄 PDF", data=pdf_data, file_name="image_tr.pdf", use_container_width=True)
             with act_img[3]:
-                st.download_button("📝 TXT", data=translation, file_name="linguistix_tr.txt", width='stretch')
+                st.download_button("📝 TXT", data=translation, file_name="linguistix_tr.txt", use_container_width=True)
 
             if 'refined_output_img' in st.session_state and st.session_state.refined_output_img:
                 st.markdown(f"""
-                <div style="background: rgba(59, 130, 246, 0.1); border: 1px dashed #3B82F6; padding: 15px; border-radius: 12px; margin-top:10px;">
-                    <small style="opacity:0.7;">✨ AI Refined Version:</small><br>
-                    <b>{st.session_state.refined_output_img}</b>
+                <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.1)); border: 1.5px solid var(--accent)30; padding:16px; border-radius:12px; margin:16px 0;">
+                    <p style="font-size:11px; font-weight:800; color:var(--accent); text-transform:uppercase; margin-bottom:8px;">✨ AI Refined Version</p>
+                    <p style="font-size:14px; color:var(--text-primary); margin:0; line-height:1.6;">{st.session_state.refined_output_img}</p>
                 </div>
                 """, unsafe_allow_html=True)
-                if st.button("Use Refined", key="use_refined_img"):
+                if st.button("✅ Use Refined", key="use_refined_img", use_container_width=True):
                     st.session_state.ocr_result = st.session_state.refined_output_img
                     del st.session_state.refined_output_img
                     st.rerun()
             
-            if st.button("🗑️ Clear Result", key="img_clear_final"):
+            if st.button("🗑️ Clear Result", key="img_clear_final", use_container_width=True):
                 st.session_state.ocr_result = None
                 st.rerun()
         else:
             st.markdown("""
-            <div style='background:var(--panel); border:1.5px dashed var(--border); border-radius:20px; padding:60px 20px; text-align:center; color:var(--text-secondary);'>
-                <h3 style='color:var(--text-primary) !important; margin-bottom:10px;'>Translation Result</h3>
-                <p style='font-size:14px; opacity:0.8;'>Upload and translate an image to see results here.</p>
+            <div style='background:var(--panel); border:1.5px dashed var(--border); border-radius:20px; padding:80px 40px; text-align:center;'>
+                <div style='font-size:3rem; margin-bottom:16px;'>📸</div>
+                <h3 style='color:var(--text-primary) !important; margin:0 0 8px 0; font-size:1.2rem;'>No Translation Yet</h3>
+                <p style='font-size:14px; opacity:0.7; margin:0;'>Upload an image to extract and translate text instantly</p>
             </div>
             """, unsafe_allow_html=True)
