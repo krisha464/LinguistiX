@@ -230,6 +230,11 @@ def render_fun_zone(render_word_games):
         .fun-zone-card {
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            min-height: 240px;
             padding: 18px 18px 16px;
             border-radius: 20px;
             border: 1px solid rgba(148,163,184,0.18);
@@ -237,6 +242,30 @@ def render_fun_zone(render_word_games):
             box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
             transition: transform 0.25s ease, box-shadow 0.25s ease;
             animation: float-soft 4.8s ease-in-out infinite;
+        }
+
+        .fun-zone-tier-section {
+            margin-bottom: 24px;
+        }
+
+        .fun-zone-tier-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .fun-zone-tier-title {
+            font-size: 1.02rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .fun-zone-tier-subtitle {
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+            font-weight: 600;
         }
 
         .fun-zone-card:hover {
@@ -271,24 +300,33 @@ def render_fun_zone(render_word_games):
             animation: float-soft 4.2s ease-in-out infinite;
         }
 
+        .fun-zone-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
         .fun-zone-title-small {
             font-size: 1.02rem;
             font-weight: 800;
             color: var(--text-primary);
-            margin: 0 0 6px;
+            margin: 0;
         }
 
         .fun-zone-desc {
             font-size: 0.9rem;
             color: var(--text-secondary);
-            margin: 0 0 10px;
+            margin: 0;
             line-height: 1.5;
+            min-height: 44px;
         }
 
         .fun-zone-badges {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            margin-top: auto;
             margin-bottom: 10px;
         }
 
@@ -322,7 +360,6 @@ def render_fun_zone(render_word_games):
             display: block;
             height: 100%;
             border-radius: inherit;
-            background: linear-gradient(90deg, #2563EB, #38BDF8);
         }
 
         .fun-zone-meta {
@@ -338,6 +375,27 @@ def render_fun_zone(render_word_games):
             border: 1px solid rgba(148,163,184,0.16);
         }
 
+        .fun-zone-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .fun-zone-card-footer-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(148,163,184,0.16);
+        }
+
         .fun-zone-sticker {
             position: absolute;
             bottom: 10px;
@@ -350,6 +408,7 @@ def render_fun_zone(render_word_games):
 
         .fun-zone-card button, .fun-zone-card .stButton > button {
             margin-top: 10px;
+            width: 100%;
             border-radius: 999px !important;
             transition: transform 0.2s ease, box-shadow 0.2s ease !important;
         }
@@ -438,126 +497,60 @@ def render_fun_zone(render_word_games):
     </div>
     """, unsafe_allow_html=True)
 
-    r1_c1, r1_c2, r1_c3 = st.columns(3, gap="large")
-
-    with r1_c1:
-        st.markdown("""
-        <div class="fun-zone-card" style="border-top: 5px solid #2563EB;">
-            <div class="fun-zone-illustration" style="background: #EFF6FF; color: #2563EB;">🧠</div>
-            <div class="fun-zone-title-small">Word Quest</div>
-            <div class="fun-zone-desc">A neatly paced quiz that turns vocabulary practice into a modern daily challenge.</div>
-            <div class="fun-zone-badges">
-                <span class="fun-zone-badge">⭐ Popular</span>
-                <span class="fun-zone-badge">⚡ Quick</span>
-            </div>
-            <div class="fun-zone-progress"><span style="width: 82%"></span></div>
-            <div class="fun-zone-meta">📈 82% completion flow</div>
-            <div class="fun-zone-sticker">🎯</div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("🚀 Start Quest", key="game_fun_quiz", use_container_width=True):
-            st.session_state.word_games_selected = 'quiz'
-            st.session_state.fun_zone_confetti = True
-            render_word_games()
-
-    with r1_c2:
-        st.markdown("""
-        <div class="fun-zone-card" style="border-top: 5px solid #F59E0B; animation-delay: 0.4s;">
-            <div class="fun-zone-illustration" style="background: #FFF7ED; color: #C2410C;">🔍</div>
-            <div class="fun-zone-title-small">Pair Finder</div>
-            <div class="fun-zone-desc">A clean matching activity that feels light, intelligent, and satisfying to solve.</div>
-            <div class="fun-zone-badges">
-                <span class="fun-zone-badge">🧩 Match</span>
-                <span class="fun-zone-badge">✨ Calm</span>
-            </div>
-            <div class="fun-zone-progress"><span style="width: 68%"></span></div>
-            <div class="fun-zone-meta">🧠 Friendly pace</div>
-            <div class="fun-zone-sticker">✦</div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("🔍 Find Pairs", key="game_fun_syn", use_container_width=True):
-            st.session_state.word_games_selected = 'syn_ant'
-            st.session_state.fun_zone_confetti = True
-            render_word_games()
-
-    with r1_c3:
-        st.markdown("""
-        <div class="fun-zone-card" style="border-top: 5px solid #10B981; animation-delay: 0.8s;">
-            <div class="fun-zone-illustration" style="background: #ECFDF5; color: #047857;">🌐</div>
-            <div class="fun-zone-title-small">Word Detective</div>
-            <div class="fun-zone-desc">Uncover hidden language clues in a sharper, more modern mystery format.</div>
-            <div class="fun-zone-badges">
-                <span class="fun-zone-badge">🕵️ Mystery</span>
-                <span class="fun-zone-badge">🎯 Focused</span>
-            </div>
-            <div class="fun-zone-progress"><span style="width: 74%"></span></div>
-            <div class="fun-zone-meta">🔍 Detective mode</div>
-            <div class="fun-zone-sticker">◌</div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("🕵️ Solve Case", key="game_fun_detect", use_container_width=True):
-            st.session_state.word_games_selected = 'lang_detect'
-            st.session_state.fun_zone_confetti = True
-            render_word_games()
-
     st.markdown("<div style='margin-top:24px;'></div>", unsafe_allow_html=True)
 
-    r2_c1, r2_c2, r2_c3 = st.columns(3, gap="large")
+    game_cards = [
+        {"id": "word_quest", "icon": "🧠", "label": "Word Quest", "desc": "Vocabulary quiz with quick translation choices", "cta": "🚀 Start Quest", "tier": "Beginner", "accent": "#EF9F27", "accent_bg": "#FFF5E4", "accent_chip": "#FDE7C3", "tag_a": "Quick quiz", "tag_b": "Vocabulary", "progress": 72, "footer": "Warm-up ready"},
+        {"id": "picture_match", "icon": "🖼️", "label": "Picture Match", "desc": "Match the image cue to the correct word", "cta": "🖼️ Match", "tier": "Beginner", "accent": "#1D9E75", "accent_bg": "#EAF8F2", "accent_chip": "#D0EEE1", "tag_a": "Visual", "tag_b": "Confidence", "progress": 64, "footer": "First steps"},
+        {"id": "lightning_blitz", "icon": "⚡", "label": "Lightning Blitz", "desc": "Beat the clock with rapid-fire prompts", "cta": "⚡ Go Blitz", "tier": "Beginner", "accent": "#D85A30", "accent_bg": "#FCEEE7", "accent_chip": "#F9D7C9", "tag_a": "Speed", "tag_b": "Recall", "progress": 58, "footer": "Fast lane"},
+        {"id": "story_master", "icon": "📖", "label": "Story Master", "desc": "Fill the blank with the best context-based word", "cta": "📖 Try Story", "tier": "Intermediate", "accent": "#7F77DD", "accent_bg": "#F2EEFF", "accent_chip": "#D9D3FF", "tag_a": "Reading", "tag_b": "Context", "progress": 81, "footer": "Story flow"},
+        {"id": "sentence_scramble", "icon": "🧩", "label": "Sentence Scramble", "desc": "Rebuild the sentence by ordering shuffled chips", "cta": "🧩 Scramble", "tier": "Intermediate", "accent": "#639922", "accent_bg": "#F1F8E8", "accent_chip": "#DDEEC6", "tag_a": "Grammar", "tag_b": "Order", "progress": 77, "footer": "Pattern play"},
+        {"id": "listening_ear", "icon": "🎧", "label": "Listening Ear", "desc": "Listen and choose the translation you hear", "cta": "🎧 Listen", "tier": "Intermediate", "accent": "#D4537E", "accent_bg": "#FCECF2", "accent_chip": "#F8D6E2", "tag_a": "Listening", "tag_b": "Audio", "progress": 69, "footer": "Ear training"},
+        {"id": "word_detective", "icon": "🕵️", "label": "Word Detective", "desc": "Use clues to solve the hidden word", "cta": "🕵️ Solve", "tier": "Advanced", "accent": "#185FA5", "accent_bg": "#EAF4FC", "accent_chip": "#CFE3F6", "tag_a": "Reasoning", "tag_b": "Clues", "progress": 86, "footer": "Deep dive"},
+        {"id": "grammar_gauntlet", "icon": "📝", "label": "Grammar Gauntlet", "desc": "Spot the error and pick the correction", "cta": "📝 Test Grammar", "tier": "Advanced", "accent": "#E24B4A", "accent_bg": "#FDEDED", "accent_chip": "#F8C9C9", "tag_a": "Precision", "tag_b": "Fixes", "progress": 91, "footer": "Master mode"},
+    ]
 
-    with r2_c1:
-        st.markdown("""
-        <div class="fun-zone-card" style="border-top: 5px solid #7C3AED; animation-delay: 1.1s;">
-            <div class="fun-zone-illustration" style="background: #F5F3FF; color: #6D28D9;">📚</div>
-            <div class="fun-zone-title-small">Story Master</div>
-            <div class="fun-zone-desc">Blend creativity with practice through story-based word exploration.</div>
-            <div class="fun-zone-badges">
-                <span class="fun-zone-badge">✨ Creative</span>
-                <span class="fun-zone-badge">📝 Story</span>
+    for tier_name in ["Beginner", "Intermediate", "Advanced"]:
+        tier_cards = [card for card in game_cards if card["tier"] == tier_name]
+        if not tier_cards:
+            continue
+        st.markdown(f"""
+        <div class="fun-zone-tier-section">
+            <div class="fun-zone-tier-heading">
+                <div>
+                    <div class="fun-zone-tier-title">{tier_name}</div>
+                    <div class="fun-zone-tier-subtitle">{len(tier_cards)} focused practice modes</div>
+                </div>
             </div>
-            <div class="fun-zone-progress"><span style="width: 90%"></span></div>
-            <div class="fun-zone-meta">📖 Narrative mode</div>
-            <div class="fun-zone-sticker">📖</div>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("📖 Read Story", key="game_fun_context", use_container_width=True):
-            st.session_state.word_games_selected = 'context_master'
-            st.session_state.fun_zone_confetti = True
-            render_word_games()
-
-    with r2_c2:
-        st.markdown("""
-        <div class="fun-zone-card" style="border-top: 5px solid #EF4444; animation-delay: 1.5s;">
-            <div class="fun-zone-illustration" style="background: #FEF2F2; color: #DC2626;">⚡</div>
-            <div class="fun-zone-title-small">Lightning Blitz</div>
-            <div class="fun-zone-desc">A fast-paced challenge that keeps the energy high without feeling too busy.</div>
-            <div class="fun-zone-badges">
-                <span class="fun-zone-badge">🏆 Speed</span>
-                <span class="fun-zone-badge">⚡ Focus</span>
-            </div>
-            <div class="fun-zone-progress"><span style="width: 78%"></span></div>
-            <div class="fun-zone-meta">⚡ Speed round</div>
-            <div class="fun-zone-sticker">⚡</div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("⚡ Start Blitz", key="game_fun_speed", use_container_width=True):
-            st.session_state.word_games_selected = 'speed_trans'
-            st.session_state.fun_zone_confetti = True
-            render_word_games()
-
-    with r2_c3:
-        st.markdown("""
-        <div class="fun-zone-card" style="opacity: 0.72; border: 1px dashed rgba(148,163,184,0.35); background: linear-gradient(145deg, rgba(255,255,255,0.82), rgba(248,250,252,0.72));">
-            <div class="fun-zone-illustration" style="background: #F8FAFC; color: #64748B;">🎁</div>
-            <div class="fun-zone-title-small">Secret Level</div>
-            <div class="fun-zone-desc">A new experience is on the way, designed to feel just as refined as the rest of the app.</div>
-            <div class="fun-zone-badges">
-                <span class="fun-zone-badge">🔒 Coming soon</span>
-            </div>
-            <div class="fun-zone-progress"><span style="width: 35%"></span></div>
-            <div class="fun-zone-meta">🛠️ In progress</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.button("Mystery Box", key="game_fun_mystery", use_container_width=True, disabled=True)
+        for start in range(0, len(tier_cards), 3):
+            row_cards = tier_cards[start:start + 3]
+            columns = st.columns(3)
+            for column, card in zip(columns, row_cards):
+                with column:
+                    st.markdown(f"""
+                    <div class="fun-zone-card" style="border-top: 3px solid {card['accent']}; margin-bottom: 14px;">
+                        <div class="fun-zone-card-body">
+                            <div class="fun-zone-illustration" style="background: {card['accent_bg']}; color: {card['accent']};">{card['icon']}</div>
+                            <div class="fun-zone-title-small">{card['label']}</div>
+                            <div class="fun-zone-desc">{card['desc']}</div>
+                            <div class="fun-zone-badges">
+                                <span class="fun-zone-badge">{card['tag_a']}</span>
+                                <span class="fun-zone-badge">{card['tag_b']}</span>
+                            </div>
+                            <div class="fun-zone-progress"><span style="background: linear-gradient(90deg, {card['accent']}, {card['accent_chip']}); width: {card['progress']}%;"></span></div>
+                            <div class="fun-zone-card-footer">
+                                <span class="fun-zone-card-footer-chip">📈 {card['progress']}%</span>
+                                <span>{card['footer']}</span>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    if st.button(card['cta'], key=f"game_fun_{card['id']}", use_container_width=True):
+                        st.session_state.word_games_selected = card['id']
+                        st.session_state.fun_zone_confetti = True
+                        render_word_games()
 
     footer_copy = "Keep the streak alive and make today count." if is_logged_in else "Log in to unlock your personal streak and progress history."
     st.markdown(f"<div class='fun-zone-footer-note'>{footer_copy}</div>", unsafe_allow_html=True)

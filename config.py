@@ -70,9 +70,9 @@ THEMES = {
         "text": "#2E1065", "text_muted": "#6B21A8", "text_inverse": "#FFFFFF", "border": "#F3E8FF"
     },
     "obsidian_dark": {
-        "name": "🌑 Obsidian (Dark Mode)",
-        "bg": "#020617", "panel": "#0F172A", "accent": "#38BDF8", "accent_secondary": "#0ea5e9", "glow": "rgba(56, 189, 248, 0.3)",
-        "text": "#F8FAFC", "text_muted": "#94A3B8", "text_inverse": "#0F172A", "border": "#1E293B"
+        "name": "🌑 Obsidian Glow",
+        "bg": "#EBF7FF", "panel": "#FFFFFF", "accent": "#38BDF8", "accent_secondary": "#60A5FA", "glow": "rgba(56, 189, 248, 0.15)",
+        "text": "#0F172A", "text_muted": "#475569", "text_inverse": "#FFFFFF", "border": "#DBEAFE"
     },
     "nebula_multi": {
         "name": "🌈 Nebula Multishade",
