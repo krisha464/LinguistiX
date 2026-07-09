@@ -54,8 +54,13 @@ def main():
     # Header Section
     h_col1, h_col2, h_col3 = st.columns([1, 4, 1], gap="medium")
     with h_col2:
-        st.markdown('<div class="hero-text"><h1 style="text-align:center !important; font-family: \'Poppins\', sans-serif !important; text-transform:uppercase; margin-bottom:4px; margin-top:0; padding:0; font-weight:900; font-size:56px; letter-spacing:-1.5px;">LINGUISTIX</h1></div>', unsafe_allow_html=True)
-        st.markdown("<div class='hero-text'><p style='text-align:center !important; font-family: \'Inter\', sans-serif !important; opacity:0.85; font-size:16px; margin:0; padding:0; margin-top:4px; color:var(--text-secondary) !important;'>Translate Beyond Words</p></div>", unsafe_allow_html=True)
+        st.markdown(
+            '<div class="hero-text" style="padding: 0 0 10px;">'
+            '<h1 style="text-align:center !important; font-family: \'Poppins\', sans-serif !important; text-transform:uppercase; margin-bottom:10px; margin-top:0; padding:0; font-weight:900; font-size:52px; letter-spacing:-1px; line-height:1.05;">LINGUISTIX</h1>'
+            '<p style="text-align:center !important; font-family: \'Inter\', sans-serif !important; opacity:0.9; font-size:18px; margin:0 auto; max-width:740px; padding:0; margin-top:6px; color:var(--text-secondary) !important; letter-spacing:0.2px; line-height:1.7;">Smart translation for confident conversations, clearer meaning, and faster results.</p>'
+            '</div>',
+            unsafe_allow_html=True
+        )
     with h_col3:
         st.markdown("<div class='auth-btn' style='text-align:right; padding-top:4px;'>", unsafe_allow_html=True)
         if st.session_state.authenticated:
@@ -74,7 +79,7 @@ def main():
                     st.session_state.phrasebook = []
                     st.rerun()
         else:
-            if st.button("🔑 Login / Sign Up", key="nav_login_btn"):
+            if st.button("Get Started", key="nav_login_btn", help="Sign in or join free to unlock more features"):
                 st.session_state.page = "auth"
                 st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)

@@ -8,6 +8,16 @@ import wave
 import streamlit as st
 
 from utils.speech import text_to_speech
+from data.game_banks import (
+    WORD_QUEST_BANK,
+    STORY_BANK,
+    LIGHTNING_BANK,
+    DETECTIVE_BANK,
+    SCRAMBLE_BANK,
+    LISTENING_BANK,
+    GRAMMAR_BANK,
+    PICTURE_BANK
+)
 
 GAME_LENGTH = 8
 
@@ -90,60 +100,10 @@ GAME_LIBRARY = [
         "accent": "#0EA5E9",
         "background": "#F0F9FF",
         "watermark": "🖼️",
-        "level": "beginner",
-    },
+        }
 ]
 
 GAME_THEMES = {game["id"]: game for game in GAME_LIBRARY}
-
-WORD_QUEST_BANK = [
-    {"word": "Bonjour", "correct_translation": "Hello", "wrong_options": ["Goodbye", "House", "River"], "difficulty": "beginner", "language_pair": "fr→en"},
-    {"word": "Libro", "correct_translation": "Book", "wrong_options": ["Door", "Moon", "Apple"], "difficulty": "beginner", "language_pair": "es→en"},
-    {"word": "Mañana", "correct_translation": "Tomorrow", "wrong_options": ["Yesterday", "Today", "Morning"], "difficulty": "intermediate", "language_pair": "es→en"},
-    {"word": "Courage", "correct_translation": "Bravery", "wrong_options": ["Silence", "Weather", "Fury"], "difficulty": "advanced", "language_pair": "fr→en"},
-]
-
-STORY_BANK = [
-    {"prompt": "The rain fell softly across the ______ field.", "answer": "quiet", "options": ["quiet", "bright", "tasty", "rapid"], "hint": "adjective"},
-    {"prompt": "She decided to ______ the old lantern before sunset.", "answer": "repair", "options": ["repair", "borrow", "ignore", "scream"], "hint": "verb"},
-    {"prompt": "The chef served a ______ meal to the guests.", "answer": "delicious", "options": ["delicious", "metal", "ancient", "curly"], "hint": "adjective"},
-]
-
-LIGHTNING_BANK = [
-    {"prompt": "Translate 'Water' to Spanish", "answer": "Agua", "options": ["Agua", "Tierra", "Cielo", "Fuego"]},
-    {"prompt": "Translate 'Friend' to French", "answer": "Ami", "options": ["Ami", "Maison", "Voiture", "Lune"]},
-    {"prompt": "Translate 'Sun' to Italian", "answer": "Sole", "options": ["Sole", "Mare", "Casa", "Pietra"]},
-]
-
-DETECTIVE_BANK = [
-    {"definition": "A place where books are kept", "category": "building", "first_letter": "l", "example": "I borrowed a novel from the ________.", "answer": "library"},
-    {"definition": "A person who writes stories", "category": "job", "first_letter": "a", "example": "The ________ published a new fairy tale.", "answer": "author"},
-    {"definition": "A vehicle that carries people across water", "category": "transport", "first_letter": "b", "example": "We crossed the river by ________.", "answer": "boat"},
-]
-
-SCRAMBLE_BANK = [
-    {"source": "I enjoy learning languages", "target": ["I", "enjoy", "learning", "languages"]},
-    {"source": "She reads every morning", "target": ["She", "reads", "every", "morning"]},
-    {"source": "We travel together often", "target": ["We", "travel", "together", "often"]},
-]
-
-LISTENING_BANK = [
-    {"audio_text": "Good morning", "correct_translation": "Buenos días", "options": ["Buenos días", "Buenas noches", "Gracias", "Adiós"], "lang": "es"},
-    {"audio_text": "Thank you", "correct_translation": "Merci", "options": ["Merci", "Bonjour", "Oui", "Non"], "lang": "fr"},
-    {"audio_text": "Please wait", "correct_translation": "Por favor espere", "options": ["Por favor espere", "Pase por aquí", "Estoy listo", "No entiendo"], "lang": "es"},
-]
-
-GRAMMAR_BANK = [
-    {"sentence": "She go to school every day.", "error_word_index": 1, "correct_word": "goes", "options": ["go", "goes", "gone", "going"]},
-    {"sentence": "They has finished the task.", "error_word_index": 1, "correct_word": "have", "options": ["has", "have", "had", "having"]},
-    {"sentence": "I am reading a interesting book.", "error_word_index": 4, "correct_word": "interesting", "options": ["interesting", "interest", "interested", "interestingly"]},
-]
-
-PICTURE_BANK = [
-    {"emoji": "🍎", "word": "apple", "options": ["apple", "car", "book", "house"]},
-    {"emoji": "🚗", "word": "car", "options": ["car", "tree", "cat", "sun"]},
-    {"emoji": "🏠", "word": "house", "options": ["house", "shoe", "chair", "river"]},
-]
 
 
 def _theme_for(game_id):
@@ -199,25 +159,37 @@ def _ensure_stats(game_id):
     return state
 
 
-def _render_game_header(game_id, title, subtitle, step, total_steps, stats):
+def _render_game_header(game_id, main_title, subtitle, description, step, total_steps, stats):
     theme = _theme_for(game_id)
+    accent = theme.get('accent', '#10b981')
+    progress_pct = int((step / max(total_steps, 1)) * 100)
     return f"""
-    <div style='background: linear-gradient(135deg, {theme['accent']}22, {theme['background']}); border:1px solid {theme['accent']}33; border-radius:24px; padding:18px; margin-bottom:16px;'>
+    <div class='game-header-card'>
         <div class='game-header-row'>
-            <div style='display:flex; align-items:center; gap:12px;'>
-                <div style='width:44px; height:44px; border-radius:16px; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg, {theme['accent']}, {theme['accent']}); color:#fff; font-size:1.25rem;'>
-                    {theme['icon']}
+            <div class='game-header-left'>
+                <div class='game-icon-box' style='background: {accent}22; color: {accent};'>
+                    🎮
                 </div>
                 <div>
-                    <div style='font-size:1.05rem; color:var(--text-primary); font-weight:800;'>{title}</div>
-                    <div style='font-size:0.95rem; color:var(--text-secondary); margin-top:2px;'>{subtitle}</div>
+                    <div class='game-title'>{main_title}</div>
+                    <div class='game-subtitle' style='color: {accent};'>{subtitle}</div>
+                    <div style='font-size: 0.8rem; color: #64748b; margin-top: 2px; font-weight: 500;'>{description}</div>
                 </div>
             </div>
             <div class='game-meta'>
-                <span class='game-status-pill' style='border-color:{theme['accent']}; color:{theme['accent']};'>Round {step}/{total_steps}</span>
-                <span class='game-status-pill' style='border-color:{theme['accent']}; color:{theme['accent']};'>🏆 {stats['score']}/{stats['total']}</span>
-                <span class='game-status-pill' style='border-color:{theme['accent']}; color:{theme['accent']};'>⚡ {stats['streak']} streak</span>
+                <span class='game-status-pill primary' style='background: {accent}11; border-color: {accent}44; color: {accent};'>
+                    📄 Question {step} / {total_steps}
+                </span>
+                <span class='game-status-pill secondary' style='border-color: {accent}44; color: {accent};'>
+                    ⏱️ 25s
+                </span>
+                <span class='game-status-pill warning'>
+                    🏆 {stats['score']}/{stats['total']}
+                </span>
             </div>
+        </div>
+        <div class='game-progress-track' style='background: {accent}22;'>
+            <div class='game-progress-fill' style='width:{progress_pct}%; background: {accent};'></div>
         </div>
     </div>
     """
@@ -225,13 +197,14 @@ def _render_game_header(game_id, title, subtitle, step, total_steps, stats):
 
 def _render_question_shell(game_id, title, subtitle):
     theme = _theme_for(game_id)
+    accent = theme.get('accent', '#10b981')
     return f"""
-    <div class='game-question-shell' style='background:{theme['background']}; border:1px solid {theme['accent']}33; position:relative; overflow:hidden;'>
-        <div style='position:absolute; right:18px; bottom:14px; font-size:72px; opacity:0.06; pointer-events:none;'>{theme['watermark']}</div>
-        <div style='position:relative; z-index:1;'>
-            <h2 style='margin:0; color:var(--text-primary); line-height:1.35;'>{title}</h2>
-            <p style='margin:10px 0 0; color:var(--text-secondary); font-size:0.96rem;'>{subtitle}</p>
+    <div class='game-question-shell' style='background: {accent}08; border-color: {accent}22;'>
+        <div class='game-q-icon' style='background: {accent}22; color: {accent};'>
+            {theme['icon']}
         </div>
+        <div class='game-wm' style='color: {accent};'>{theme.get('watermark', '📖')}</div>
+        <div class='game-q-box'>"{subtitle}"</div>
     </div>
     """
 
@@ -262,95 +235,451 @@ def render_word_games():
 
     st.markdown("""
     <style>
+        /* ═══════════════════════════════════════════
+           GAME ZONE — Light Card Theme
+           ═══════════════════════════════════════════ */
+
+        /* Override the modal background to a clean white */
+        [data-testid="stModalBody"], div[role="dialog"] {
+            background: #ffffff !important;
+        }
+
+        /* ── Card shell (generic) ── */
         .game-shell {
-            background: var(--panel);
-            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.85);
+            border: 1px solid rgba(209,213,219,0.5);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+            margin-bottom: 14px;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .game-shell:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        }
+
+        /* ── Game selection card ── */
+        .gcard-container {
+            position: relative;
+            margin-bottom: 12px;
+        }
+        .gcard-container .stButton {
+            position: absolute;
+            inset: 0;
+            opacity: 0.01;
+            z-index: 10;
+        }
+        .gcard-container .stButton button {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+        }
+        
+        .gcard {
+            background: #ffffff;
             border-radius: 18px;
-            padding: 16px;
-            box-shadow: 0 10px 24px var(--glow);
-            margin-bottom: 16px;
+            padding: 0;
+            display: flex;
+            align-items: stretch;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            height: 100%;
         }
-        .game-choice {
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            border: 1px solid var(--border);
-            background: var(--panel);
-            color: var(--text-primary);
+        .gcard:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.13);
         }
-        .game-choice.choice-correct { border-color: var(--accent); color: var(--accent); }
-        .game-choice.choice-incorrect { border-color: var(--accent-secondary); color: var(--text-primary); }
+        .gcard-accent-bar {
+            width: 5px;
+            flex-shrink: 0;
+            border-radius: 18px 0 0 18px;
+        }
+        .gcard-inner {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 18px;
+            flex: 1;
+            min-width: 0;
+            position: relative;
+        }
+        /* soft diagonal gradient fill tinted by accent color */
+        .gcard-gradient {
+            position: absolute;
+            inset: 0;
+            border-radius: 0 18px 18px 0;
+            pointer-events: none;
+        }
+        .gcard-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+        .gcard-body {
+            flex: 1;
+            min-width: 0;
+            position: relative;
+            z-index: 1;
+        }
+        .gcard-title {
+            font-size: 0.97rem;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1.3;
+        }
+        .gcard-desc {
+            font-size: 0.81rem;
+            color: #64748b;
+            margin-top: 3px;
+            line-height: 1.45;
+        }
+        .gcard-level {
+            flex-shrink: 0;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-radius: 999px;
+            padding: 4px 11px;
+            white-space: nowrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Section heading ── */
+        .gsection {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+            color: #94a3b8;
+            margin: 22px 0 8px;
+            padding-left: 2px;
+        }
+
+        /* ── In-game header ── */
+        .game-header-card {
+            background: #ffffff;
+            border-radius: 20px;
+            margin-bottom: 14px;
+        }
         .game-header-row {
             display: flex;
             justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
             align-items: center;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        .game-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .game-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .game-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .game-subtitle {
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-top: 2px;
         }
         .game-meta {
             display: flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
         }
         .game-status-pill {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
+            gap: 6px;
+            padding: 8px 16px;
             border-radius: 999px;
-            border: 1px solid var(--border);
-            background: rgba(255,255,255,0.88);
-            color: var(--text-primary);
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
         }
+        .game-status-pill.primary {
+            border: 1px solid;
+        }
+        .game-status-pill.secondary {
+            background: #ffffff;
+            border: 1px solid;
+        }
+        .game-status-pill.warning {
+            background: #fefce8;
+            border: 1px solid #fef08a;
+            color: #ca8a04;
+        }
+
+        /* ── Progress bar ── */
+        .game-progress-track {
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+            width: 100%;
+        }
+        .game-progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.4s ease;
+        }
+
+        /* ── Question shell ── */
         .game-question-shell {
-            padding: 18px;
+            border: 1px solid;
             border-radius: 20px;
-            background: #FFFFFF;
-            border: 1px solid rgba(209, 213, 219, 0.6);
-            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+            padding: 32px 64px;
+            margin-bottom: 24px;
+            position: relative;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 140px;
+        }
+        .game-q-box {
+            color: #0f172a;
+            font-size: 1.25rem;
+            font-weight: 800;
+            line-height: 1.6;
+            max-width: 80%;
+            margin: 0 auto;
+        }
+        .game-wm {
+            position: absolute;
+            right: 48px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 100px;
+            opacity: 0.05;
+            pointer-events: none;
+        }
+        .game-q-icon {
+            position: absolute;
+            left: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+        }
+
+        /* ── Choice buttons (answer options) ── */
+        .game-choice {
+            padding: 16px 20px;
+            border-radius: 16px;
+            border: 1.5px solid #f1f5f9;
+            background: #ffffff;
+            color: #475569;
+            font-size: 0.92rem;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            transition: all 0.2s;
+            height: 100%;
+        }
+        .game-choice:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .game-choice-title {
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        .game-choice-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #f0fdf4;
+            color: #16a34a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .game-choice.choice-correct {
+            border-color: #22c55e;
+            background: #f0fdf4;
+        }
+        .game-choice.choice-correct .game-choice-icon {
+            background: #22c55e;
+            color: #ffffff;
+        }
+        .game-choice.choice-correct .game-choice-title {
+            color: #16a34a;
+        }
+        .game-choice.choice-incorrect {
+            border-color: #fca5a5;
+            background: #fef2f2;
+        }
+        
+        .choice-card-container {
+            position: relative;
+            margin-bottom: 12px;
+            height: 84px;
+        }
+        .choice-card-container .stButton {
+            position: absolute;
+            inset: 0;
+            opacity: 0.01; /* Invisible but clickable */
+            z-index: 10;
+        }
+        .choice-card-container .stButton button {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+        }
+
+        /* ── Answer tray and chips ── */
+        .game-answer-tray {
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 16px;
+            min-height: 64px;
+            margin-bottom: 16px;
+            background: #f8fafc;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .game-answer-tray-label {
+            font-size: 0.82rem;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .game-word-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-bottom: 16px;
         }
         .game-chip {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 12px;
-            border-radius: 999px;
-            margin: 4px;
-            border: 1px solid var(--border);
-            background: var(--panel);
+            padding: 10px 18px;
+            border-radius: 12px;
+            border: 1.5px solid #e2e8f0;
+            background: #ffffff;
+            color: #334155;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .game-chip:hover {
+            border-color: #94a3b8;
+        }
+        .game-chip.placed {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #94a3b8;
+        }
+
+        /* ── Action Buttons ── */
+        .game-action-btn-wrap .stButton button {
+            background: #f0fdf4 !important;
+            color: #16a34a !important;
+            border: 1px solid #dcfce7 !important;
+            border-radius: 999px !important;
+            font-weight: 700 !important;
+            padding: 10px 20px !important;
+            transition: all 0.2s !important;
+        }
+        .game-action-btn-wrap .stButton button:hover {
+            border-color: #bbf7d0 !important;
+            background: #dcfce7 !important;
+        }
+        .game-back-btn-wrap .stButton button {
+            background: #16a34a !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 999px !important;
+            font-weight: 700 !important;
+            padding: 12px 28px !important;
+            box-shadow: 0 4px 14px rgba(22,163,74,0.3) !important;
+            transition: all 0.2s !important;
+        }
+        .game-back-btn-wrap .stButton button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(22,163,74,0.4) !important;
+            background: #15803d !important;
         }
     </style>
+
     """, unsafe_allow_html=True)
 
     if not game_id:
-        st.markdown("<p style='font-size:1.1rem; color:var(--accent); font-weight:700;'>Pick a challenge and start practicing.</p>", unsafe_allow_html=True)
-        grouped_games = {
-            "🌱 Beginner": [game for game in GAME_LIBRARY if game.get("level") == "beginner"],
-            "📚 Intermediate": [game for game in GAME_LIBRARY if game.get("level") == "intermediate"],
-            "🏆 Advanced": [game for game in GAME_LIBRARY if game.get("level") == "advanced"],
-        }
-        for section_title, games in grouped_games.items():
-            st.markdown(f"<div style='font-size:1rem; font-weight:800; color:var(--text-primary); margin:16px 0 8px;'>{section_title}</div>", unsafe_allow_html=True)
-            for game in games:
-                theme = _theme_for(game["id"])
+        st.markdown("<p style='font-size:0.85rem; color:#64748b; font-weight:600; margin-bottom:16px;'>Explore our mini-games and start practising.</p>", unsafe_allow_html=True)
+        
+        if "shuffled_games" not in st.session_state:
+            shuffled = list(GAME_LIBRARY)
+            random.shuffle(shuffled)
+            st.session_state.shuffled_games = shuffled
+            
+        cols = st.columns(2)
+        for i, game in enumerate(st.session_state.shuffled_games):
+            theme = _theme_for(game["id"])
+            accent = theme["accent"]
+            bg_color = theme.get("background", "#F8FAFC")
+            
+            with cols[i % 2]:
+                st.markdown("<div class='gcard-container'>", unsafe_allow_html=True)
                 st.markdown(f"""
-                <div class='game-shell' style='border-top:4px solid {theme['accent']};'>
-                    <div style='display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;'>
-                        <div>
-                            <div style='font-size:1rem; font-weight:800; color:var(--text-primary);'>{game['icon']} {game['label']}</div>
-                            <div style='font-size:0.92rem; color:var(--text-secondary); margin-top:4px;'>{game['description']}</div>
+                <div class='gcard'>
+                    <div class='gcard-accent-bar' style='background:{accent};'></div>
+                    <div class='gcard-inner'>
+                        <div class='gcard-gradient' style='background: linear-gradient(135deg, {accent}12 0%, {bg_color}cc 60%, #ffffff 100%);'></div>
+                        <div class='gcard-icon' style='background:{accent}18; border:1.5px solid {accent}33;'>
+                            {game["icon"]}
+                        </div>
+                        <div class='gcard-body'>
+                            <div class='gcard-title'>{game["label"]}</div>
+                            <div class='gcard-desc'>{game["description"]}</div>
                         </div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-                if st.button(f"{game['icon']} {game['label']}", key=f"launch_{game['id']}", use_container_width=True):
+                
+                if st.button(f"launch_hidden_{game['id']}", key=f"launch_{game['id']}", use_container_width=True):
                     _reset_game_state(game["id"])
                     st.session_state.word_games_selected = game["id"]
                     st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
         return
 
     theme = _theme_for(game_id)
@@ -366,7 +695,7 @@ def render_word_games():
             st.session_state[f"{game_id}_selected_answer"] = None
 
         q = st.session_state[f"{game_id}_question"]
-        st.markdown(_render_game_header(game_id, "Word Quest", f"Choose the best translation for {q['word']}", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
+        st.markdown(_render_game_header(game_id, "Word Games", "Word Quest", f"Choose the best translation for {q['word']}", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
         st.markdown(_render_hearts(game_id), unsafe_allow_html=True)
         st.markdown(_render_question_shell(game_id, f"What does '{q['word']}' mean?", "Pick the correct translation from four options."), unsafe_allow_html=True)
 
@@ -420,53 +749,100 @@ def render_word_games():
             st.session_state[f"{game_id}_show_hint"] = False
 
         q = st.session_state[f"{game_id}_question"]
-        st.markdown(_render_game_header(game_id, "Story Master", "Fill the blank with the word that fits best", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
+        st.markdown(_render_game_header(game_id, "Word Games", "Story Master", "Pick the best word for the sentence", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
         st.markdown(_render_hearts(game_id), unsafe_allow_html=True)
         st.markdown(_render_question_shell(game_id, q["prompt"], "Choose the best word from the list."), unsafe_allow_html=True)
 
         if st.session_state[f"{game_id}_show_hint"]:
             st.info(f"Hint: the missing word is a {q['hint']}.")
 
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            if st.button("💡 Show hint", key=f"{game_id}_hint"):
-                st.session_state[f"{game_id}_show_hint"] = True
-                st.rerun()
-        with col2:
-            if st.button("Skip", key=f"{game_id}_skip"):
-                st.session_state[f"{game_id}_question"] = random.choice(STORY_BANK)
-                st.session_state[f"{game_id}_show_hint"] = False
-                st.session_state[f"{game_id}_feedback"] = None
-                st.session_state[f"{game_id}_selected_answer"] = None
-                st.rerun()
-
         feedback = st.session_state[f"{game_id}_feedback"]
-        for option in q["options"]:
-            if feedback is None:
-                if st.button(option, key=f"{game_id}_option_{option}", use_container_width=True):
-                    correct = option == q["answer"]
-                    _update_score(game_id, correct, 55)
-                    st.session_state[f"{game_id}_selected_answer"] = option
-                    if correct:
-                        _play_sound(True)
-                        st.session_state[f"{game_id}_feedback"] = "correct"
-                    else:
-                        _play_sound(False)
-                        st.session_state[f"{game_id}_feedback"] = "incorrect"
+        
+        # 2x2 grid for options using columns
+        opt_cols = st.columns(2)
+        
+        for i, opt_data in enumerate(q["options"]):
+            is_dict = isinstance(opt_data, dict)
+            option = opt_data["title"] if is_dict else opt_data
+            desc = opt_data.get("desc", "") if is_dict else ""
+            opt_icon = opt_data.get("icon", "•") if is_dict else "•"
+            
+            with opt_cols[i % 2]:
+                st.markdown("<div class='choice-card-container'>", unsafe_allow_html=True)
+                
+                # The visual card (underneath)
+                cls = ""
+                icon = opt_icon
+                if feedback is not None:
+                    if option == q["answer"]:
+                        cls = "choice-correct"
+                        icon = "✅"
+                    elif option == st.session_state[f"{game_id}_selected_answer"]:
+                        cls = "choice-incorrect"
+                        icon = "❌"
+                        
+                st.markdown(f"""
+                <div class='game-choice {cls}'>
+                    <div class='game-choice-icon'>{icon}</div>
+                    <div class='game-choice-text'>
+                        <div class='game-choice-title'>{option}</div>
+                        <div style='font-size: 0.8rem; color:#64748b;'>{desc}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # The invisible clickable button (on top)
+                if feedback is None:
+                    if st.button(f"hidden_{option}", key=f"{game_id}_option_{option}", use_container_width=True):
+                        correct = option == q["answer"]
+                        _update_score(game_id, correct, 55)
+                        st.session_state[f"{game_id}_selected_answer"] = option
+                        if correct:
+                            _play_sound(True)
+                            st.session_state[f"{game_id}_feedback"] = "correct"
+                        else:
+                            _play_sound(False)
+                            st.session_state[f"{game_id}_feedback"] = "incorrect"
+                        st.rerun()
+                
+                st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown("<div style='margin-top: 16px;'></div>", unsafe_allow_html=True)
+        
+        # Bottom actions row
+        c_left, c_space, c_right = st.columns([2, 1, 1])
+        with c_left:
+            sub_c1, sub_c2 = st.columns(2)
+            with sub_c1:
+                st.markdown("<div class='game-action-btn-wrap'>", unsafe_allow_html=True)
+                if st.button("💡 Hint", key=f"{game_id}_hint", use_container_width=True):
+                    st.session_state[f"{game_id}_show_hint"] = True
+                    st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
+            with sub_c2:
+                st.markdown("<div class='game-action-btn-wrap'>", unsafe_allow_html=True)
+                if st.button("⏩ Skip  -5⭐", key=f"{game_id}_skip", use_container_width=True):
+                    st.session_state[f"{game_id}_question"] = random.choice(STORY_BANK)
+                    st.session_state[f"{game_id}_show_hint"] = False
+                    st.session_state[f"{game_id}_feedback"] = None
+                    st.session_state[f"{game_id}_selected_answer"] = None
+                    st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
+        
+        with c_right:
+            st.markdown("<div class='game-back-btn-wrap'>", unsafe_allow_html=True)
+            if feedback is not None:
+                if st.button("Next ➔", key=f"{game_id}_next", use_container_width=True):
+                    st.session_state[f"{game_id}_question"] = random.choice(STORY_BANK)
+                    st.session_state[f"{game_id}_feedback"] = None
+                    st.session_state[f"{game_id}_selected_answer"] = None
+                    st.session_state[f"{game_id}_show_hint"] = False
                     st.rerun()
             else:
-                cls = "choice-correct" if option == q["answer"] else "choice-incorrect" if option == st.session_state[f"{game_id}_selected_answer"] else ""
-                icon = "✅" if option == q["answer"] else "❌" if option == st.session_state[f"{game_id}_selected_answer"] else "•"
-                st.markdown(f"<div class='game-choice {cls}'>{icon} {option}</div>", unsafe_allow_html=True)
-
-        if feedback is not None:
-            st.success("Nice job! The sentence now reads naturally.") if feedback == "correct" else st.error(f"The best fit was {q['answer']}.")
-            if st.button("Next", key=f"{game_id}_next"):
-                st.session_state[f"{game_id}_question"] = random.choice(STORY_BANK)
-                st.session_state[f"{game_id}_feedback"] = None
-                st.session_state[f"{game_id}_selected_answer"] = None
-                st.session_state[f"{game_id}_show_hint"] = False
-                st.rerun()
+                if st.button("← Back to Games", key=f"{game_id}_back", use_container_width=True):
+                    st.session_state.word_games_selected = None
+                    st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
 
     elif game_id == "lightning_blitz":
         if f"{game_id}_question" not in st.session_state:
@@ -483,7 +859,7 @@ def render_word_games():
         deadline = st.session_state[f"{game_id}_deadline"]
         remaining = max(0, int(deadline - time.time()))
         timer_color = "#16A34A" if remaining > 4 else "#D97706" if remaining > 2 else "#DC2626"
-        st.markdown(_render_game_header(game_id, "Lightning Blitz", "Answer before the timer hits zero", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
+        st.markdown(_render_game_header(game_id, "Word Games", "Lightning Blitz", "Answer before the timer hits zero", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
         st.markdown(_render_hearts(game_id), unsafe_allow_html=True)
         st.markdown(_render_question_shell(game_id, q["prompt"], "Fast, simple, and focused on accuracy."), unsafe_allow_html=True)
         st.markdown(f"<div style='font-size:1.1rem; font-weight:800; color:{timer_color}; margin-bottom:14px;'>⏱ {remaining}s remaining</div>", unsafe_allow_html=True)
@@ -542,7 +918,7 @@ def render_word_games():
             st.session_state[f"{game_id}_revealed_clues"] = []
 
         q = st.session_state[f"{game_id}_question"]
-        st.markdown(_render_game_header(game_id, "Word Detective", "Use the clues to guess the hidden word", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
+        st.markdown(_render_game_header(game_id, "Word Games", "Word Detective", "Use the clues to guess the hidden word", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
         st.markdown(_render_hearts(game_id), unsafe_allow_html=True)
         st.markdown(_render_question_shell(game_id, "Clues", f"Definition: {q['definition']}"), unsafe_allow_html=True)
 
@@ -594,7 +970,7 @@ def render_word_games():
 
         q = st.session_state[f"{game_id}_question"]
         expected = q["target"]
-        st.markdown(_render_game_header(game_id, "Sentence Scramble", "Rebuild the sentence by tapping the chips", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
+        st.markdown(_render_game_header(game_id, "Word Games", "Sentence Scramble", "Rebuild the sentence by tapping the chips", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
         st.markdown(_render_hearts(game_id), unsafe_allow_html=True)
         st.markdown(_render_question_shell(game_id, "Arrange the words", "Tap words into the answer tray from left to right."), unsafe_allow_html=True)
 
@@ -658,7 +1034,7 @@ def render_word_games():
             st.session_state[f"{game_id}_slow_mode"] = False
 
         q = st.session_state[f"{game_id}_question"]
-        st.markdown(_render_game_header(game_id, "Listening Ear", "Listen and choose the translation you hear", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
+        st.markdown(_render_game_header(game_id, "Word Games", "Listening Ear", "Listen and choose the translation you hear", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
         st.markdown(_render_hearts(game_id), unsafe_allow_html=True)
         st.markdown(_render_question_shell(game_id, f"Hear: {q['audio_text']}", "Use the replay button if you need another listen."), unsafe_allow_html=True)
 
@@ -718,7 +1094,7 @@ def render_word_games():
             st.session_state[f"{game_id}_selected_fix"] = None
 
         q = st.session_state[f"{game_id}_question"]
-        st.markdown(_render_game_header(game_id, "Grammar Gauntlet", "Tap the incorrect word, then choose the correction", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
+        st.markdown(_render_game_header(game_id, "Word Games", "Grammar Gauntlet", "Tap the incorrect word, then choose the correction", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
         st.markdown(_render_hearts(game_id), unsafe_allow_html=True)
         words = q["sentence"].split()
         st.markdown(_render_question_shell(game_id, q["sentence"], "Choose the mistaken word first."), unsafe_allow_html=True)
@@ -754,7 +1130,7 @@ def render_word_games():
             st.session_state[f"{game_id}_feedback"] = None
 
         q = st.session_state[f"{game_id}_question"]
-        st.markdown(_render_game_header(game_id, "Picture Match", "Match the visual to the best word", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
+        st.markdown(_render_game_header(game_id, "Word Games", "Picture Match", "Match the visual to the best word", 1, GAME_LENGTH, stats), unsafe_allow_html=True)
         st.markdown(_render_hearts(game_id), unsafe_allow_html=True)
         st.markdown(f"<div style='font-size:5rem; text-align:center; margin:18px 0;'>{q['emoji']}</div>", unsafe_allow_html=True)
         for option in q["options"]:
@@ -783,6 +1159,8 @@ def render_word_games():
                 st.session_state[f"{game_id}_feedback"] = None
                 st.rerun()
 
-    if st.button("← Back to games", key=f"{game_id}_close"):
+    st.markdown("<div class='game-back-btn-wrap'>", unsafe_allow_html=True)
+    if st.button("← Back to games", key=f"{game_id}_close", use_container_width=True):
         st.session_state.word_games_selected = None
         st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)

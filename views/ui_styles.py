@@ -32,9 +32,9 @@ def get_main_css(theme):
     
     :root {{
         /* PRIMARY COLOR & ACCENTS */
-        --primary: {primary_accent};
-        --primary-light: {accent_light};
-        --primary-dark: rgba(0, 0, 0, 0.1);
+        --primary: #2563EB;
+        --primary-light: #60A5FA;
+        --primary-dark: rgba(15, 23, 42, 0.12);
         
         /* COLOR TINTS FOR DEPTH & STATES */
         --primary-hover: rgba({int(primary_accent[1:3], 16)}, {int(primary_accent[3:5], 16)}, {int(primary_accent[5:7], 16)}, 0.9);
@@ -62,12 +62,12 @@ def get_main_css(theme):
         --text-inverse: {theme.get('text_inverse', '#ffffff')};
         
         /* ACCENT & BORDERS */
-        --accent: {theme['accent']};
-        --accent-secondary: {theme['accent_secondary']};
-        --panel: {theme.get('panel', 'rgba(255, 255, 255, 0.65)')};
-        --bg: transparent;
-        --border: {theme.get('border', '#D9ECF7')};
-        --glow: {theme.get('glow', 'rgba(59,130,246,0.15)')};
+        --accent: #14B8A6;
+        --accent-secondary: #60A5FA;
+        --panel: #FFFFFF;
+        --bg: #F8FAFC;
+        --border: #E2E8F0;
+        --glow: rgba(37, 99, 235, 0.14);
         
         /* TYPOGRAPHY */
         --font-heading: 'Outfit', sans-serif;
@@ -204,12 +204,8 @@ def get_main_css(theme):
        BACKGROUND - Clean, soft gradient  
     ═══════════════════════════════════════════════════ */
     .stApp {{
-        background-image: linear-gradient(
-            135deg,
-            #F4FAFF 0%,
-            #EAF7FF 40%,
-            #FFFFFF 100%
-        ), {_bg_url} !important;
+        background-image: radial-gradient(circle at top left, #EEF6FF 0%, #F8FBFF 36%, #FFFFFF 100%) !important;
+        background-color: #F8FBFF !important;
         background-size: cover !important;
         background-position: center center !important;
         background-attachment: fixed !important;
@@ -233,16 +229,23 @@ def get_main_css(theme):
         color: var(--text-primary) !important;
     }}
     
-    /* Ensure inputs have a solid white background */
+    /* Ensure inputs have a solid, soft card surface */
     .stTextInput input, .stTextArea textarea, .stSelectbox [data-baseweb="select"] {{
-        background: #FFFFFF !important;
+        background: #F8FBFF !important;
         color: var(--text-primary) !important;
-        border: 1.5px solid {theme.get('border', '#D9ECF7')} !important;
+        border: 1.5px solid rgba(148, 163, 184, 0.35) !important;
+        border-radius: 20px !important;
+        box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+        transition: border-color var(--transition-fast) !important, box-shadow var(--transition-fast) !important;
     }}
 
     .stTextInput input:focus, .stTextArea textarea:focus {{
         border-color: var(--accent) !important;
-        box-shadow: 0 0 0 3px var(--glow) !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12) !important;
+    }}
+
+    textarea[aria-label="Output text"] {{
+        animation: fadeInText 0.35s ease both !important;
     }}
     
     /* Muted/secondary text — using theme text_muted */
@@ -565,35 +568,41 @@ def get_main_css(theme):
 
     /* TABS - Clean style */
     [data-testid="stTabs"] [data-baseweb="tab-list"] {{
-        background: transparent !important;
-        padding: 0 !important;
-        border-bottom: 2px solid var(--border) !important;
-        margin-bottom: 24px !important;
+        background: rgba(255,255,255,0.9) !important;
+        padding: 10px 14px !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 999px !important;
+        margin-bottom: 26px !important;
         display: flex !important;
-        gap: 32px !important;
+        gap: 16px !important;
+        flex-wrap: wrap !important;
+        box-shadow: var(--shadow-sm) !important;
     }}
 
     button[data-baseweb="tab"] {{
         background: transparent !important;
         color: var(--text-secondary) !important;
         border: none !important;
-        border-bottom: 3px solid transparent !important;
-        border-radius: 0 !important;
+        border-radius: 999px !important;
         margin: 0 !important;
-        padding: 8px 0 !important;
-        font-weight: 600 !important;
+        padding: 10px 18px !important;
+        font-weight: 700 !important;
         font-size: 0.95rem !important;
-        transition: all 0.3s ease !important;
+        transition: all var(--transition-fast) !important;
+        opacity: 0.9 !important;
     }}
 
     button[data-baseweb="tab"][aria-selected="true"] {{
-        color: var(--accent) !important;
-        border-bottom-color: var(--accent) !important;
-        text-shadow: none !important;
+        background: var(--primary) !important;
+        color: #ffffff !important;
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.18) !important;
+        opacity: 1 !important;
     }}
     
     button[data-baseweb="tab"]:hover {{
         color: var(--text-primary) !important;
+        opacity: 1 !important;
+        background: rgba(37, 99, 235, 0.08) !important;
     }}
 
 
@@ -609,20 +618,21 @@ def get_main_css(theme):
     .stButton button {{
         font-family: var(--font-heading) !important;
         font-weight: 800 !important;
-        font-size: 0.9rem !important;
+        font-size: 0.95rem !important;
         letter-spacing: 0.8px !important;
         border-radius: var(--radius-lg) !important;
-        padding: 0.7rem 1.4rem !important;
-        transition: all var(--transition-base) !important;
+        padding: 0.75rem 1.5rem !important;
+        transition: all var(--transition-fast) !important;
         cursor: pointer !important;
         position: relative !important;
         overflow: hidden !important;
         white-space: nowrap !important;
         border: none !important;
-        min-height: 48px !important;
+        min-height: 50px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        transform: translateZ(0) !important;
     }}
 
     /* PRIMARY BUTTON - Bold & Easy to Find */
@@ -637,13 +647,13 @@ def get_main_css(theme):
     
     /* PRIMARY HOVER - Elevated with depth */
     .stButton button:not([kind="secondary"]):hover {{
-        transform: scale(1.03) translateY(-4px) !important;
+        transform: scale(1.02) translateY(-2px) !important;
         box-shadow: 
             var(--shadow-accent-md),
-            0 12px 32px rgba(0, 0, 0, 0.15),
-            0 0 20px var(--primary),
+            0 14px 36px rgba(15, 23, 42, 0.16),
+            0 0 18px var(--primary),
             inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
-        filter: brightness(1.12) !important;
+        filter: brightness(1.08) !important;
     }}
     
     /* PRIMARY ACTIVE - Pressed state with immediate feedback */
@@ -666,7 +676,7 @@ def get_main_css(theme):
     .stButton button[kind="secondary"]:hover {{
         background: linear-gradient(135deg, var(--primary)18, var(--primary)12) !important;
         border-color: var(--primary) !important;
-        transform: scale(1.03) translateY(-2px) !important;
+        transform: scale(1.02) translateY(-1px) !important;
         box-shadow: var(--shadow-accent-md), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
         filter: brightness(1.05) !important;
     }}
@@ -833,11 +843,11 @@ def get_main_css(theme):
     .stSelectbox [data-baseweb="select"] {{
         background: #FFFFFF !important;
         border: 1.5px solid var(--border) !important;
-        border-radius: var(--radius-md) !important;
-        padding: 0 14px !important;
-        min-height: 48px !important;
+        border-radius: 16px !important;
+        padding: 0 16px !important;
+        min-height: 50px !important;
         box-shadow: var(--shadow-sm) !important;
-        transition: all var(--transition-base) !important;
+        transition: border-color var(--transition-base) !important, box-shadow var(--transition-base) !important;
         color: var(--text-primary) !important;
         display: flex !important;
         align-items: center !important;
@@ -851,6 +861,19 @@ def get_main_css(theme):
     .stSelectbox [data-baseweb="select"]:focus {{
         border-color: var(--primary) !important;
         box-shadow: var(--shadow-accent-sm), 0 0 0 3px var(--bg-light) !important;
+    }}
+
+    .translator-card {{
+        background: #FFFFFF !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 28px !important;
+        padding: 28px !important;
+        margin-bottom: 36px !important;
+        box-shadow: 0 22px 45px rgba(15, 23, 42, 0.06) !important;
+    }}
+
+    .stTextArea textarea::placeholder {{
+        color: rgba(15, 23, 42, 0.45) !important;
     }}
     
     /* DROPDOWN MENU - Light, Grouped Content */
@@ -1456,18 +1479,40 @@ def get_main_css(theme):
 
     /* Tabs label padding and alignment */
     [data-testid="stTabs"] [data-baseweb="tab-list"] {{
-        padding: 0 !important;
-        gap: 8px !important;
-        border-bottom: 2px solid rgba(59, 130, 246, 0.1) !important;
-        margin-bottom: 20px !important;
+        background: rgba(255,255,255,0.9) !important;
+        padding: 10px 12px !important;
+        gap: 16px !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 999px !important;
+        margin-bottom: 26px !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        box-shadow: var(--shadow-sm) !important;
     }}
 
     button[data-baseweb="tab"] {{
         padding: 10px 18px !important;
-        border-radius: 10px 10px 0 0 !important;
-        font-size: 0.88rem !important;
-        font-weight: 600 !important;
+        border-radius: 999px !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
         min-width: fit-content !important;
+        background: transparent !important;
+        color: var(--text-secondary) !important;
+        transition: all var(--transition-fast) !important;
+        opacity: 0.92 !important;
+    }}
+
+    button[data-baseweb="tab"][aria-selected="true"] {{
+        background: var(--primary) !important;
+        color: #ffffff !important;
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.18) !important;
+        opacity: 1 !important;
+    }}
+
+    button[data-baseweb="tab"]:hover {{
+        background: rgba(37, 99, 235, 0.08) !important;
+        color: var(--text-primary) !important;
+        opacity: 1 !important;
     }}
 
     /* Expander header alignment */
@@ -1664,6 +1709,11 @@ def get_main_css(theme):
     .hero-text {{
         animation: fadeInUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }}
+
+    @keyframes fadeInText {{
+        from {{ opacity: 0; transform: translateY(14px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
+    }}
     
     @keyframes floatSlightly {{
         0%, 100% {{ transform: translateY(0); }}
@@ -1687,30 +1737,19 @@ def get_main_css(theme):
     }}
     
     .stApp::before {{
-        content: '';
-        position: fixed;
-        top: 15%;
-        left: 8%;
-        width: 350px;
-        height: 350px;
-        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-        border-radius: 50%;
-        filter: blur(40px);
-        z-index: -1;
-        animation: slowMoveBlob1 15s ease-in-out infinite;
-        pointer-events: none;
+        display: none !important;
     }}
     
     .stApp::after {{
         content: '';
         position: fixed;
-        bottom: 15%;
-        right: 8%;
-        width: 450px;
-        height: 450px;
-        background: radial-gradient(circle, rgba(160, 225, 235, 0.3) 0%, transparent 70%);
+        bottom: 14%;
+        right: 12%;
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 62%);
         border-radius: 50%;
-        filter: blur(50px);
+        filter: blur(44px);
         z-index: -1;
         animation: slowMoveBlob2 18s ease-in-out infinite;
         pointer-events: none;
